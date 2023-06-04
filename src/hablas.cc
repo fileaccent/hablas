@@ -6,6 +6,8 @@ extern char hablas_hgemm_batched_kernel;
 extern char hablas_hgemm_strided_batched_kernel;
 extern char hablas_hsyrk_kernel;
 extern char hablas_hsyr2k_kernel;
+extern char hablas_hgemv_kernel;
+extern char hablas_sgemv_kernel;
 
 rtError_t registerKernel(char &k, const char *func_name)
 {
@@ -495,5 +497,112 @@ rtError_t hablasHsyr2k(hablasHandle_t handle,
         }
         error = rtFree(workspace);
     }
+    return error;
+}
+
+rtError_t hablasHgemv(hablasHandle_t handle,
+                    hablasOperation_t trans,
+                    int64_t M, 
+                    int64_t N,
+                    __fp16 *alpha,
+                    __fp16 *h_A,
+                    int64_t lda,
+                    __fp16 *h_X,
+                    int64_t incx,
+                    __fp16 *beta,
+                    __fp16 *h_Y,
+                    int64_t incy)
+{
+
+    rtError_t error;
+    rtStream_t stream;
+    hablasGetStream(handle, &stream);
+    const char *func_name = "hablas_hgemv_kernel";
+    uint64_t blockDim = (M + 64 - 1) / 64;
+    if (trans == HABLAS_OP_T) {
+       blockDim = (N + 64 - 1) / 64;
+    }
+    error = registerKernel(hablas_hgemv_kernel, func_name);
+    struct KernelArgs
+    {
+        hablasOperation_t trans;
+        int64_t M;
+        int64_t N;
+        __fp16 alpha;
+        __fp16 *h_A;
+        int64_t lda;
+        __fp16 *h_X;
+        int64_t incx;
+        __fp16 beta;
+        __fp16 *h_Y;
+        int64_t incy;
+    };
+    
+    KernelArgs args;
+    args.trans = trans;
+    args.M = M;
+    args.N = N;
+    args.alpha = *alpha;
+    args.h_A = h_A;
+    args.lda = lda;
+    args.h_X = h_X;
+    args.incx = incx;
+    args.beta = *beta;
+    args.h_Y = h_Y;
+    args.incy = incy;
+    error = rtKernelLaunch(func_name, blockDim, (void *)&args,
+                           sizeof(args), NULL, stream);
+    return error;
+}
+
+rtError_t hablasSgemv(hablasHandle_t handle,
+                   hablasOperation_t trans,
+                   int64_t M, 
+                   int64_t N,
+                   float alpha,
+                   void *input1_hbm,
+                   int64_t lda,
+                   void *input2_hbm,
+                   int64_t incx,
+                   float beta,
+                   void *input3_hbm,
+                   int64_t incy) {
+    rtStream_t stream;
+    rtError_t error;
+    hablasGetStream(handle, &stream);
+    const char *func_name = "hablas_sgemv_kernel";
+	uint64_t blockDim = (M + 512 - 1) / 512;
+    if (trans == HABLAS_OP_T) {
+       blockDim = (N + 64 - 1) / 64;
+    }
+    error = registerKernel(hablas_sgemv_kernel, func_name);
+    struct KernelArgs {
+        hablasOperation_t trans;
+        int64_t M;
+        int64_t N;
+        float alpha;
+        void* input1_hbm;
+        int64_t lda;
+        void* input2_hbm;
+        int64_t incx;
+        float beta;
+        void* input3_hbm;
+        int64_t incy;
+    };
+    
+    KernelArgs args;
+    args.trans = trans;
+    args.M = M;
+    args.N = N;
+    args.alpha = alpha;
+    args.input1_hbm = input1_hbm;
+    args.lda = lda;
+    args.incx = incx;
+    args.input2_hbm = input2_hbm;
+    args.beta = beta;
+    args.input3_hbm = input3_hbm;
+    args.incy = incy;
+	error = rtKernelLaunch(func_name, blockDim, (void *)&args,
+                           sizeof(args), NULL, stream);
     return error;
 }
