@@ -8,6 +8,7 @@ extern char hablas_hsyrk_kernel;
 extern char hablas_hsyr2k_kernel;
 extern char hablas_hgemv_kernel;
 extern char hablas_sgemv_kernel;
+extern char hablas_hsymv_kernel;
 
 rtError_t registerKernel(char &k, const char *func_name)
 {
@@ -604,5 +605,64 @@ rtError_t hablasSgemv(hablasHandle_t handle,
     args.incy = incy;
 	error = rtKernelLaunch(func_name, blockDim, (void *)&args,
                            sizeof(args), NULL, stream);
+    return error;
+}
+
+rtError_t hablasHsymv(hablasHandle_t handle,
+                       hablasFillMode_t uplo,
+                       int64_t N,
+                       __fp16 alpha,
+                       __fp16 *A,
+                       int64_t lda,
+                       __fp16 *x,
+                       int64_t incx,
+                       __fp16 beta,
+                       __fp16 *y,
+                       int64_t incy)
+{
+    rtError_t error;
+    rtStream_t stream;
+    hablasGetStream(handle, &stream);
+    const char *func_name = "hablas_hsymv_kernel";
+    uint64_t blockDim = CORENUM;
+    error = registerKernel(hablas_hsymv_kernel, func_name);
+
+    struct KernelArgs
+    {
+        hablasFillMode_t uplo;
+        int64_t n; 
+        __fp16 alpha;
+        void *matrixA;
+        int64_t lda; 
+        void *x; 
+        int64_t incx; 
+        __fp16 beta;
+        void *y; 
+        int64_t incy;
+    };
+    KernelArgs args;
+    
+    args.uplo = uplo; 
+    args.n = N; 
+    args.alpha = alpha;
+    args.matrixA = A;
+    args.lda = lda; 
+    args.x = x; 
+    args.incx = incx; 
+    args.beta = beta;
+    args.y = y; 
+    args.incy = incy;
+
+    error = rtKernelLaunch("hablas_hsymv_kernel", blockDim, (void *)&args,
+                           sizeof(args), NULL, stream);
+    if (error == RT_ERROR_NONE)
+    {
+        printf("[SUCCESS]rtKernelLaunch succeed!\n");
+    }
+    else
+    {
+        printf("[FAILED]rtKernelLaunch failed!\n");
+    }
+
     return error;
 }
