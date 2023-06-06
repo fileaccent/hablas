@@ -6,13 +6,12 @@ INC := -I${rt_path} -I./include
 FLAG :=
 ARCH := -DASCEND910B
 TBE :=#-DTBE
-all: hsymv
+all :
 
-
-install: hgemm hgemm_batched hgemm_strided_batched hsyrk hsyr2k hgemv sgemv hsymv ./src/handle.cc ./src/hablas.cc
+install: hgemm hgemm_batched hgemm_strided_batched hsyrk hsyr2k hgemv sgemv ssymv hsymv ./src/handle.cc ./src/hablas.cc
 	g++ -fpic ${INC} -c ./src/handle.cc -o ./build/handle.o
 	g++ -fpic ${INC} ${ARCH} -c ./src/hablas.cc -o ./build/hablas.o
-	g++ -shared ./build/handle.o ./build/hablas.o ./build/elf_hablas_hgemm_kernel.o ./build/elf_hablas_hgemm_batched_kernel.o ./build/elf_hablas_hgemm_strided_batched_kernel.o ./build/elf_hablas_hsyrk_kernel.o ./build/elf_hablas_hsyr2k_kernel.o ./build/elf_hablas_hgemv_kernel.o ./build/elf_hablas_sgemv_kernel.o ./build/elf_hablas_hsymv_kernel.o -o ./lib/libhablas.so
+	g++ -shared ./build/handle.o ./build/hablas.o ./build/elf_hablas_hgemm_kernel.o ./build/elf_hablas_hgemm_batched_kernel.o ./build/elf_hablas_hgemm_strided_batched_kernel.o ./build/elf_hablas_hsyrk_kernel.o ./build/elf_hablas_hsyr2k_kernel.o ./build/elf_hablas_hgemv_kernel.o ./build/elf_hablas_sgemv_kernel.o ./build/elf_hablas_ssymv_kernel.o ./build/elf_hablas_hsymv_kernel.o -o ./lib/libhablas.so
 
 hgemm: ./src/kernel/hgemm.cc
 	${CC} -c ./src/kernel/hgemm.cc --hacl-device-only ${INC} ${TBE} -o ./build/hablas_hgemm_kernel.o
@@ -45,6 +44,10 @@ sgemv: ./src/kernel/sgemv.cc
 hsymv: ./src/kernel/hsymv.cc
 	${CC} -c ./src/kernel/hsymv.cc --hacl-device-only ${INC} -o ./build/hablas_hsymv_kernel.o
 	./bin/run_elf_change_hacl_kernel ./build/hablas_hsymv_kernel.o ./build/elf_hablas_hsymv_kernel.o
+
+ssymv: ./src/kernel/sgemv.cc
+	${CC} -c ./src/kernel/ssymv.cc --hacl-device-only ${INC} -o ./build/hablas_ssymv_kernel.o
+	./bin/run_elf_change_hacl_kernel ./build/hablas_ssymv_kernel.o ./build/elf_hablas_ssymv_kernel.o
 
 clean:
 	rm ./build/*
