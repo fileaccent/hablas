@@ -563,12 +563,12 @@ rtError_t hablasSgemv(hablasHandle_t handle,
                    hablasOperation_t trans,
                    int64_t M, 
                    int64_t N,
-                   float alpha,
+                   float* alpha,
                    void *input1_hbm,
                    int64_t lda,
                    void *input2_hbm,
                    int64_t incx,
-                   float beta,
+                   float* beta,
                    void *input3_hbm,
                    int64_t incy) {
     rtStream_t stream;
@@ -598,12 +598,12 @@ rtError_t hablasSgemv(hablasHandle_t handle,
     args.trans = trans;
     args.M = M;
     args.N = N;
-    args.alpha = alpha;
+    args.alpha = *alpha;
     args.input1_hbm = input1_hbm;
     args.lda = lda;
     args.incx = incx;
     args.input2_hbm = input2_hbm;
-    args.beta = beta;
+    args.beta = *beta;
     args.input3_hbm = input3_hbm;
     args.incy = incy;
 	error = rtKernelLaunch(func_name, blockDim, (void *)&args,
