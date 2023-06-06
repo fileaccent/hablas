@@ -307,4 +307,156 @@ HACL_INLINE __aicore__ void hablas_load_l12l0b(__l0b__ half *l0b,
     }
 }
 
+HACL_INLINE __aicore__ void hablas_load_Vector_gm2ub(__ub__ half *dst,
+                                                     __gm__ half *src,
+                                                     __ub__ half *temp,
+                                                     int32_t len,
+                                                     int32_t stride)
+{
+    int content = 32 *1024;
+    if(stride == 1)
+    {
+        _memcpy(dst, src, len);
+    }
+    else
+    {
+        int32_t loop = (stride * len) / content;
+        int start_posi = 0;
+        int iub = 0;
+        for (int i = 0; i < loop; i++)
+        {
+            _memcpy(temp, src + i * content, content);
+            set_flag(PIPE_MTE2, PIPE_S, 2);
+            wait_flag(PIPE_MTE2, PIPE_S, 2);
+            int iwhile = start_posi;
+            while (iwhile < content) 
+            {
+                *(dst + iub) = *(temp + iwhile);
+                iwhile = iwhile + stride;
+                iub = iub + 1;
+            }
+            start_posi = iwhile - content;
+            set_flag(PIPE_S, PIPE_MTE2, 2);
+            wait_flag(PIPE_S, PIPE_MTE2, 2);
+        }
+        if((stride * len) % content)
+        {
+            _memcpy(temp, src + loop * content, (stride * len) % content);
+            set_flag(PIPE_MTE2, PIPE_S, 2);
+            wait_flag(PIPE_MTE2, PIPE_S, 2);
+            int iwhile = start_posi;
+            while (iub < len) 
+            {
+                *(dst + iub) = *(temp + iwhile);
+                iwhile = iwhile + stride;
+                iub = iub + 1;
+            }
+        }
+    }
+    if(len % 16)
+    {
+        int32_t r = len % 16;
+        for(int i = 0; i < 16 - r; ++i)
+        {
+            *(dst + len + i) = (half)0.0;
+        }
+    }
+}
+
+HACL_INLINE __aicore__ void hablas_store_Vector_ub2gm(__gm__ half *dst,
+                                                      __ub__ half *src,
+                                                      __ub__ half *temp,
+                                                      int32_t len,
+                                                      int32_t valid_len,
+                                                      int32_t stride)
+{
+    int content = 32 *1024;
+    if(stride == 1)
+    {
+        _memcpy(dst, src, len);
+    }
+    else
+    {
+        int32_t loop = (stride * valid_len) / content;
+        int start_posi = 0;
+        int iub = 0;
+        set_flag(PIPE_V, PIPE_MTE2, 3);
+        wait_flag(PIPE_V, PIPE_MTE2, 3);
+        for (int i = 0; i < loop; i++)
+        {
+            _memcpy(temp, dst + i * content, content);
+            set_flag(PIPE_MTE2, PIPE_S, 3);
+            wait_flag(PIPE_MTE2, PIPE_S, 3);
+            int iwhile = start_posi;
+            while (iwhile < content) 
+            {
+                *(temp + iwhile) = *(src + iub);
+                iwhile = iwhile + stride;
+                iub = iub + 1;
+            }
+            start_posi = iwhile - content;
+            
+            set_flag(PIPE_S, PIPE_MTE3, 3);
+            wait_flag(PIPE_S, PIPE_MTE3, 3);
+
+            _memcpy(dst + i * content, temp, content);
+            set_flag(PIPE_MTE3, PIPE_MTE2, 3);
+            wait_flag(PIPE_MTE3, PIPE_MTE2, 3);
+
+        }
+        if((stride * valid_len) % content)
+        {
+            _memcpy(temp, dst + loop * content, (stride * len) % content);
+            set_flag(PIPE_MTE2, PIPE_S, 3);
+            wait_flag(PIPE_MTE2, PIPE_S, 3);
+            int iwhile = start_posi;
+            while (iub < valid_len) 
+            {
+                *(temp + iwhile) = *(src + iub);
+                iwhile = iwhile + stride;
+                iub = iub + 1;
+            }
+            set_flag(PIPE_S, PIPE_MTE3, 3);
+            wait_flag(PIPE_S, PIPE_MTE3, 3);
+            _memcpy(dst + loop * content, temp, (stride * len) % content);
+        }
+    }
+}
+
+HACL_INLINE __aicore__ void hablas_load_Matrix_dig_upper(__ub__ half *dst,
+                                                         int n_real_pad)
+{
+    Vector<half_16, 16, HACL_UB> ub_temp;
+
+    int n_loop = n_real_pad / 16 ;
+    
+    for(int a = 0; a < n_loop; a++)
+    {
+        vec_trans(ub_temp.get_ptr(0), dst + a * n_real_pad * 16 + a * 256, 1, 1, 1);
+        set_flag(PIPE_V, PIPE_S, 3);
+        wait_flag(PIPE_V, PIPE_S, 3);
+        for(int i = 0; i < 16; i++){
+            _memcpy(dst + a * n_real_pad * 16 + a * 256 + i * 16 + i + 1, ub_temp.get_ptr(i) + i + 1, 15 - i);
+        }
+    }
+}
+
+HACL_INLINE __aicore__ void hablas_load_Matrix_dig_lower(__ub__ half *dst,
+                                                         int n_real_pad)
+{
+    Vector<half_16, 16, HACL_UB> ub_temp;
+
+    int n_loop = n_real_pad / 16 ;
+    
+    for(int a = 0; a < n_loop; a++)
+    {
+        vec_trans(ub_temp.get_ptr(0), dst + a * n_real_pad * 16 + a * 256, 1, 1, 1);
+        set_flag(PIPE_V, PIPE_S, 3);
+        wait_flag(PIPE_V, PIPE_S, 3);
+        for(int i = 0; i < 16; i++){
+            _memcpy( dst + a * n_real_pad * 16 + a * 256 + i * 16, ub_temp.get_ptr(i), i);
+        }
+    }
+}
+
 #endif
