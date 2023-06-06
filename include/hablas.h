@@ -108,4 +108,15 @@ rtError_t hablasSgemv(
                    float beta,
                    void *input3_hbm,
                    int64_t incy);
+rtError_t hablasSsymv(hablasHandle_t handle,
+                      hablasFillMode_t uplo,
+                      int64_t N,
+                      float alpha,
+                      void *A,
+                      int64_t lda,
+                      void *X,
+                      int64_t incx,
+                      float beta,
+                      void *Y,
+                      int64_t incy);
 #endif
