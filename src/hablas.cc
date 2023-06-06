@@ -53,12 +53,12 @@ rtError_t hablasHgemm(hablasHandle_t handle,
                       int64_t M,
                       int64_t N,
                       int64_t K,
-                      __fp16 alpha,
+                      __fp16 *alpha,
                       __fp16 *A_d,
                       int64_t lda,
                       __fp16 *B_d,
                       int64_t ldb,
-                      __fp16 beta,
+                      __fp16 *beta,
                       __fp16 *C_d,
                       int64_t ldc)
 {
@@ -107,12 +107,12 @@ rtError_t hablasHgemm(hablasHandle_t handle,
     args.M = M;
     args.N = N;
     args.K = K;
-    args.alpha = alpha;
+    args.alpha = *alpha;
     args.matrixA = A_d;
     args.lda = lda;
     args.matrixB = B_d;
     args.ldb = ldb;
-    args.beta = beta;
+    args.beta = *beta;
 
     error = rtKernelLaunch((void *)func_name, blockDim, (void *)&args,
                            sizeof(args), NULL, stream);
@@ -357,10 +357,10 @@ rtError_t hablasHsyrk(hablasHandle_t handle,
                       hablasOperation_t transA,
                       int64_t N,
                       int64_t K,
-                      __fp16 alpha,
+                      __fp16 *alpha,
                       __fp16 *matrixA,
                       int64_t lda,
-                      __fp16 beta,
+                      __fp16 *beta,
                       __fp16 *matrixC,
                       int64_t ldc)
 {
@@ -406,10 +406,10 @@ rtError_t hablasHsyrk(hablasHandle_t handle,
     args.transA = transA;
     args.N = N;
     args.K = K;
-    args.alpha = alpha;
+    args.alpha = *alpha;
     args.matrixA = matrixA;
     args.lda = lda;
-    args.beta = beta;
+    args.beta = *beta;
     error = rtKernelLaunch(func_name, blockDim, (void *)&args,
                            sizeof(args), NULL, stream);
     if (ldc < 16)
