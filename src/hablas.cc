@@ -563,13 +563,13 @@ rtError_t hablasSgemv(hablasHandle_t handle,
                    hablasOperation_t trans,
                    int64_t M, 
                    int64_t N,
-                   float* alpha,
-                   void *input1_hbm,
+                   float *alpha,
+                   float *input1_hbm,
                    int64_t lda,
-                   void *input2_hbm,
+                   float *input2_hbm,
                    int64_t incx,
-                   float* beta,
-                   void *input3_hbm,
+                   float *beta,
+                   float *input3_hbm,
                    int64_t incy) {
     rtStream_t stream;
     rtError_t error;
@@ -585,12 +585,12 @@ rtError_t hablasSgemv(hablasHandle_t handle,
         int64_t M;
         int64_t N;
         float alpha;
-        void* input1_hbm;
+        float* input1_hbm;
         int64_t lda;
-        void* input2_hbm;
+        float* input2_hbm;
         int64_t incx;
         float beta;
-        void* input3_hbm;
+        float* input3_hbm;
         int64_t incy;
     };
     
