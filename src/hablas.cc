@@ -515,8 +515,12 @@ rtError_t hablasHgemv(hablasHandle_t handle,
                     __fp16 *h_Y,
                     int64_t incy)
 {
-
     rtError_t error;
+    if (trans == HABLAS_OP_N && incx == 1 && incy == 1) {
+        error = hablasHgemm(handle, trans, HABLAS_OP_N, M, 1, N, *alpha, h_A, lda, h_X, N, *beta, h_Y, M);
+        return error;
+
+    }
     rtStream_t stream;
     hablasGetStream(handle, &stream);
     const char *func_name = "hablas_hgemv_kernel";
@@ -561,13 +565,13 @@ rtError_t hablasSgemv(hablasHandle_t handle,
                    hablasOperation_t trans,
                    int64_t M, 
                    int64_t N,
-                   float alpha,
-                   void *input1_hbm,
+                   float *alpha,
+                   float *input1_hbm,
                    int64_t lda,
-                   void *input2_hbm,
+                   float *input2_hbm,
                    int64_t incx,
-                   float beta,
-                   void *input3_hbm,
+                   float *beta,
+                   float *input3_hbm,
                    int64_t incy) {
     rtStream_t stream;
     rtError_t error;
@@ -583,12 +587,12 @@ rtError_t hablasSgemv(hablasHandle_t handle,
         int64_t M;
         int64_t N;
         float alpha;
-        void* input1_hbm;
+        float* input1_hbm;
         int64_t lda;
-        void* input2_hbm;
+        float* input2_hbm;
         int64_t incx;
         float beta;
-        void* input3_hbm;
+        float* input3_hbm;
         int64_t incy;
     };
     
@@ -596,12 +600,12 @@ rtError_t hablasSgemv(hablasHandle_t handle,
     args.trans = trans;
     args.M = M;
     args.N = N;
-    args.alpha = alpha;
+    args.alpha = *alpha;
     args.input1_hbm = input1_hbm;
     args.lda = lda;
     args.incx = incx;
     args.input2_hbm = input2_hbm;
-    args.beta = beta;
+    args.beta = *beta;
     args.input3_hbm = input3_hbm;
     args.incy = incy;
 	error = rtKernelLaunch(func_name, blockDim, (void *)&args,
