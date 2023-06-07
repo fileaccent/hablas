@@ -6,7 +6,7 @@ INC := -I${rt_path} -I./include
 FLAG :=
 ARCH := -DASCEND910B
 TBE :=#-DTBE
-all :
+all : install
 
 obj := ./build/*.o
 

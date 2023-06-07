@@ -128,7 +128,7 @@ rtError_t hablasHgemm(hablasHandle_t handle,
     {
         for (int64_t i = 0; i < N; ++i)
         {
-            error = rtMemcpy(C_d + ldc * i, sizeof(__fp16) * ldc, workspace + 16 * i, sizeof(__fp16) * ldc, RT_MEMCPY_DEVICE_TO_DEVICE);
+            error = rtMemcpy(C_d + ldc * i, sizeof(__fp16) * M, workspace + 16 * i, sizeof(__fp16) * M, RT_MEMCPY_DEVICE_TO_DEVICE);
         }
         error = rtFree(workspace);
     }
@@ -235,7 +235,7 @@ rtError_t hablasHgemmBatched(hablasHandle_t handle,
         {
             for (int j = 0; j < N; ++j)
             {
-                error = rtMemcpy(reinterpret_cast<__fp16 *>(matrixC_pad_h[i]) + ldc * j, sizeof(__fp16) * ldc, workspace + N * 16 * i + 16 * j, sizeof(__fp16) * ldc, RT_MEMCPY_DEVICE_TO_DEVICE);
+                error = rtMemcpy(reinterpret_cast<__fp16 *>(matrixC_pad_h[i]) + ldc * j, sizeof(__fp16) * M, workspace + N * 16 * i + 16 * j, sizeof(__fp16) * M, RT_MEMCPY_DEVICE_TO_DEVICE);
             }
         }
         delete matrixC_pad_h;
@@ -344,7 +344,7 @@ rtError_t hablasHgemmStridedBatched(hablasHandle_t handle,
         {
             for (int64_t j = 0; j < N; ++j)
             {
-                error = rtMemcpy(matrixC + ldc * N * i + ldc * j, sizeof(__fp16) * ldc, workspace + 16 * N * i + 16 * j, sizeof(__fp16) * ldc, RT_MEMCPY_DEVICE_TO_DEVICE);
+                error = rtMemcpy(matrixC + ldc * N * i + ldc * j, sizeof(__fp16) * M, workspace + 16 * N * i + 16 * j, sizeof(__fp16) * M, RT_MEMCPY_DEVICE_TO_DEVICE);
             }
         }
         error = rtFree(workspace);
@@ -416,7 +416,7 @@ rtError_t hablasHsyrk(hablasHandle_t handle,
     {
         for (int64_t i = 0; i < N; ++i)
         {
-            error = rtMemcpy(matrixC + ldc * i, sizeof(__fp16) * ldc, workspace + 16 * i, sizeof(__fp16) * ldc, RT_MEMCPY_DEVICE_TO_DEVICE);
+            error = rtMemcpy(matrixC + ldc * i, sizeof(__fp16) * N, workspace + 16 * i, sizeof(__fp16) * N, RT_MEMCPY_DEVICE_TO_DEVICE);
         }
         error = rtFree(workspace);
     }
@@ -495,7 +495,7 @@ rtError_t hablasHsyr2k(hablasHandle_t handle,
     {
         for (int64_t i = 0; i < N; ++i)
         {
-            error = rtMemcpy(matrixC + ldc * i, sizeof(__fp16) * ldc, workspace + 16 * i, sizeof(__fp16) * ldc, RT_MEMCPY_DEVICE_TO_DEVICE);
+            error = rtMemcpy(matrixC + ldc * i, sizeof(__fp16) * N, workspace + 16 * i, sizeof(__fp16) * N, RT_MEMCPY_DEVICE_TO_DEVICE);
         }
         error = rtFree(workspace);
     }
