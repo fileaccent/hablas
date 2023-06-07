@@ -29,4 +29,8 @@ typedef enum
     HABLAS_DIAG_UNIT
 } hablasDiagType_t;
 
+typedef struct {
+    float real;
+    float imag;
+} haComplex;
 #endif

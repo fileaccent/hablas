@@ -81,4 +81,17 @@ rtError_t hablasHsyr2k(hablasHandle_t handle,
                        __fp16 *matrixC,
                        int64_t ldc);
 
+rtError_t hablasCgemv(hablasHandle_t handle,
+                       hablasOperation_t trans,
+                       int64_t M,
+                       int64_t N,
+                       void *alpha,
+                       void *matrixA,
+                       int64_t lda,
+                       void *vectorX,
+                       int64_t incx,
+                       void *beta,
+                       void *vectorY,
+                       int64_t incy);
+
 #endif
