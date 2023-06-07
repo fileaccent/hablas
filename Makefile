@@ -8,7 +8,11 @@ ARCH := -DASCEND910B
 TBE :=#-DTBE
 all :
 
-install: hgemm hgemm_batched hgemm_strided_batched hsyrk hsyr2k hgemv sgemv ssymv hsymv ./src/handle.cc ./src/hablas.cc
+mkd:
+	mkdir build
+	mkdir lib
+
+install: mkd hgemm hgemm_batched hgemm_strided_batched hsyrk hsyr2k hgemv sgemv ssymv hsymv ./src/handle.cc ./src/hablas.cc
 	g++ -fpic ${INC} -c ./src/handle.cc -o ./build/handle.o
 	g++ -fpic ${INC} ${ARCH} -c ./src/hablas.cc -o ./build/hablas.o
 	g++ -shared ./build/handle.o ./build/hablas.o ./build/elf_hablas_hgemm_kernel.o ./build/elf_hablas_hgemm_batched_kernel.o ./build/elf_hablas_hgemm_strided_batched_kernel.o ./build/elf_hablas_hsyrk_kernel.o ./build/elf_hablas_hsyr2k_kernel.o ./build/elf_hablas_hgemv_kernel.o ./build/elf_hablas_sgemv_kernel.o ./build/elf_hablas_ssymv_kernel.o ./build/elf_hablas_hsymv_kernel.o -o ./lib/libhablas.so
