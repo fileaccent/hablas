@@ -10,6 +10,8 @@
     ```shell
     git clone https://github.com/deltaguo/hablas.git
     cd hablas
+    mkdir lib
+    mkdir build
     make install
     ```
 
