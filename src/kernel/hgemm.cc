@@ -50,7 +50,7 @@ extern "C" __global__ __aicore__ void hablas_hgemm_kernel(__gm__ half *matrixA,
     int64_t m_remain = M % m;
     int64_t n_remain = N % n;
     int64_t k_remain = K % k;
-
+     
     while (M >= 16 && m_remain && m_remain < 16)
     {
         m -= 16;
@@ -75,7 +75,6 @@ extern "C" __global__ __aicore__ void hablas_hgemm_kernel(__gm__ half *matrixA,
 
     set_flag(PIPE_MTE3, PIPE_MTE2, 1);
     set_flag(PIPE_MTE1, PIPE_MTE2, 0);
-
     for (int64_t i = 0; i < tiles_per_core; ++i)
     {
         int64_t id = i * block_num + block_idx;
@@ -100,6 +99,7 @@ extern "C" __global__ __aicore__ void hablas_hgemm_kernel(__gm__ half *matrixA,
         }
         // prefetch C to ub_c
         __gm__ half *C_ptr = matrixC + col * n * ldc + row * m;
+         
         wait_flag(PIPE_MTE3, PIPE_MTE2, 1);
 
         set_flag(PIPE_M, PIPE_MTE1, 0);
@@ -112,6 +112,7 @@ extern "C" __global__ __aicore__ void hablas_hgemm_kernel(__gm__ half *matrixA,
 
         set_flag(PIPE_MTE3, PIPE_MTE2, 0);
         wait_flag(PIPE_MTE3, PIPE_MTE2, 0);
+         
         for (int64_t j = 0; j < k_loop; ++j)
         {
             int64_t k_real = k;
@@ -148,7 +149,7 @@ extern "C" __global__ __aicore__ void hablas_hgemm_kernel(__gm__ half *matrixA,
                 B_m_real = B_n_real;
                 B_n_real = tmp;
             }
-
+             
             wait_flag(PIPE_M, PIPE_MTE1, 0);
             // A
             {
@@ -157,21 +158,25 @@ extern "C" __global__ __aicore__ void hablas_hgemm_kernel(__gm__ half *matrixA,
                 wait_flag(PIPE_V, PIPE_MTE2, 0);
 
                 hablas_load_matrix_gm2ub(ubA1, A_ptr, A_m, A_n, A_m_real, A_n_real, lda);
+                 
 
                 set_flag(PIPE_MTE2, PIPE_V, 0);
                 wait_flag(PIPE_MTE2, PIPE_V, 0);
                 hablas_load_input_matrix_ND2zZ(ubA2, ubA1, A_m, A_n, (half)1.0);
+                 
 
                 set_flag(PIPE_V, PIPE_MTE3, 0);
                 wait_flag(PIPE_V, PIPE_MTE3, 0);
                 hablas_load_input_matrix_ub2l1(L1A.get_ptr(0), ubA2, A_m, A_n);
                 set_flag(PIPE_MTE3, PIPE_MTE1, 0);
                 wait_flag(PIPE_MTE3, PIPE_MTE1, 0);
+                 
                 hablas_load_l12l0a(inputA.get_ptr(0), L1A.get_ptr(0), A_m, A_n, transA);
 
                 set_flag(PIPE_V, PIPE_MTE2, 0);
                 set_flag(PIPE_MTE3, PIPE_V, 0);
                 set_flag(PIPE_MTE1, PIPE_MTE3, 0);
+                 
             }
             // B
             {
@@ -182,18 +187,23 @@ extern "C" __global__ __aicore__ void hablas_hgemm_kernel(__gm__ half *matrixA,
                 hablas_load_matrix_gm2ub(ubB1, B_ptr, B_m, B_n, B_m_real, B_n_real, ldb);
                 set_flag(PIPE_MTE2, PIPE_V, 1);
                 wait_flag(PIPE_MTE2, PIPE_V, 1);
+                 
                 hablas_load_input_matrix_ND2zZ(ubB2, ubB1, B_m, B_n, alpha);
                 set_flag(PIPE_V, PIPE_MTE3, 1);
                 wait_flag(PIPE_V, PIPE_MTE3, 1);
+                 
                 hablas_load_input_matrix_ub2l1(L1B.get_ptr(0), ubB2, B_m, B_n);
                 set_flag(PIPE_MTE3, PIPE_MTE1, 1);
                 wait_flag(PIPE_MTE3, PIPE_MTE1, 1);
+                 
                 hablas_load_l12l0b(inputB.get_ptr(0), L1B.get_ptr(0), B_m, B_n, transB);
 
                 set_flag(PIPE_V, PIPE_MTE2, 1);
                 set_flag(PIPE_MTE3, PIPE_V, 1);
                 set_flag(PIPE_MTE1, PIPE_MTE3, 1);
+                 
             }
+             
             set_flag(PIPE_MTE1, PIPE_M, 0);
             wait_flag(PIPE_MTE1, PIPE_M, 0);
             if (j == 0)
@@ -205,10 +215,12 @@ extern "C" __global__ __aicore__ void hablas_hgemm_kernel(__gm__ half *matrixA,
                 mmad(result.get_ptr(0), inputA.get_ptr(0), inputB.get_ptr(0), m_real_pad, k_real, n_real_pad, 0);
             }
             set_flag(PIPE_M, PIPE_MTE1, 0);
+             
         }
 #ifndef TBE
         wait_flag(PIPE_MTE1, PIPE_MTE2, 0);
         hablas_load_matrix_gm2l1(L1C.get_ptr(0), C_ptr, m_real_pad, n_real_pad, m_real, n_real, ldc);
+         
         set_flag(PIPE_MTE2, PIPE_MTE1, 0);
 #endif
         wait_flag(PIPE_M, PIPE_MTE1, 0);
@@ -223,7 +235,7 @@ extern "C" __global__ __aicore__ void hablas_hgemm_kernel(__gm__ half *matrixA,
         wait_flag(PIPE_M, PIPE_V, 0);
 
         hablas_store_matrixC_l02ub2ub(ub_buffer1, ub_buffer0, result.get_ptr(0), m_real_pad, n_real_pad);
-
+         
 #ifndef TBE
         set_flag(PIPE_V, PIPE_MTE1, 0);
         wait_flag(PIPE_V, PIPE_MTE1, 0);
@@ -238,7 +250,10 @@ extern "C" __global__ __aicore__ void hablas_hgemm_kernel(__gm__ half *matrixA,
         wait_flag(PIPE_V, PIPE_MTE3, 3);
         hablas_store_matrixC_ub2gm(C_ptr, ub_buffer1, m_real_pad, n_real_pad, m_real, n_real, ldc);
         set_flag(PIPE_MTE3, PIPE_MTE2, 1);
+         
     }
+     
     wait_flag(PIPE_MTE3, PIPE_MTE2, 1);
     wait_flag(PIPE_MTE1, PIPE_MTE2, 0);
+     
 }
