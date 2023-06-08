@@ -5,6 +5,8 @@
 #define CORENUM 32
 #elif ASCEND910B
 #define CORENUM 30
+#elif ASCEND710
+#define CORENUM 8
 #else
 #define CORENUM 32
 #endif
@@ -33,4 +35,5 @@ typedef struct {
     float real;
     float imag;
 } haComplex;
+
 #endif

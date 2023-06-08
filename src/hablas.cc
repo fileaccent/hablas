@@ -10,6 +10,13 @@ extern char hablas_hgemv_kernel;
 extern char hablas_sgemv_kernel;
 extern char hablas_ssymv_kernel;
 extern char hablas_hsymv_kernel;
+extern char hablas_htrmv_kernel;
+extern char hablas_htrmv_copy_kernel;
+extern char hablas_strmv_kernel;
+extern char hablas_strmv_copy_kernel;
+extern char hablas_ctrmv_kernel;
+extern char hablas_ctrmv_copy_kernel;
+extern char hablas_csymv_kernel;
 extern char hablas_cgemv_kernel;
 
 rtError_t registerKernel(char &k, const char *func_name)
@@ -676,4 +683,360 @@ rtError_t hablasCgemv(hablasHandle_t handle,
     }
     error = rtStreamSynchronize(stream);
     return error;
+}
+
+rtError_t hablasCsymv(hablasHandle_t handle,
+                      hablasFillMode_t uplo, 
+                      int64_t N,
+                      void *alpha,
+                      void *A,
+                      int64_t lda,
+                      void *X,
+                      int64_t incx,
+                      void *beta,
+                      void *Y,
+                      int64_t incy) 
+{
+    rtStream_t stream;
+    rtError_t error;
+    hablasGetStream(handle, &stream);
+    const char *func_name = "hablas_csymv_kernel";
+	uint64_t blockDim = CORENUM;
+    error = registerKernel(hablas_csymv_kernel, func_name);
+    struct KernelArgs {
+        int64_t uplo;
+        int64_t N;
+        void* alpha;
+        void* A;
+        int64_t lda;
+        void* X;
+        int64_t incx;
+        void* beta;
+        void* Y;
+        int64_t incy;
+        void* workspace;
+        int64_t base_block_size;
+    };
+
+    void *workspace = nullptr;
+    error = rtMalloc((void **)&workspace, (int64_t)N * sizeof(float) * 2, RT_MEMORY_HBM);
+
+    KernelArgs args;
+    if (uplo == HABLAS_FILL_MODE_LOWER) {
+        args.uplo = 0;
+    } else {
+        args.uplo = 1;
+    }
+    args.N = N;
+    args.alpha = alpha;
+    args.A = A;
+    args.lda = lda;
+    args.incx = incx;
+    args.X = X;
+    args.beta = beta;
+    args.Y = Y;
+    args.incy = incy;
+    args.workspace = workspace;
+    int base_block_size = 96;
+    while (N % base_block_size < 8 && N % base_block_size > 0 && base_block_size >= 16) {
+        base_block_size -= 8;
+    }
+    args.base_block_size = base_block_size;
+    error = rtKernelLaunch(func_name, blockDim, (void *)&args,
+                           sizeof(args), NULL, stream);
+    if (error == RT_ERROR_NONE) {
+        printf("[SUCCESS]rtKernelLaunch succeed!\n");
+    } else {
+        printf("[FAILED]rtKernelLaunch failed!\n");
+    }
+    error = rtStreamSynchronize(stream);
+    return error;
+}
+
+rtError_t hablasHtrmv(hablasHandle_t handle,
+                       hablasFillMode_t uplo,
+                       hablasOperation_t transA,
+                       hablasDiagType_t diag,
+                       int64_t M,
+                       void *A,
+                       int64_t lda,
+                       void *X,
+                       int64_t incx)
+{
+    rtStream_t stream;
+    rtError_t error;
+    hablasGetStream(handle, &stream);
+    const char *func_name = "hablas_htrmv_kernel";
+	uint64_t blockDim = CORENUM;
+    error = registerKernel(hablas_htrmv_kernel, func_name);
+    struct KernelArgs {
+        int64_t uplo;
+        int64_t transA;
+        int64_t diag;
+        int64_t dim_M;
+        void *matrixA;
+        int64_t lda;
+        void *x;
+        int64_t incx;
+        void *workspace;
+        int64_t base_block_size;
+    };
+    void *workspace = nullptr;
+    error = rtMalloc((void **)&workspace, (int64_t)M * sizeof(__fp16) + 16, RT_MEMORY_HBM);
+
+    KernelArgs args;
+    if (uplo == HABLAS_FILL_MODE_LOWER) {
+        args.uplo = 0;
+    } else if (uplo == HABLAS_FILL_MODE_UPPER){
+        args.uplo = 1;
+    } else {
+        args.uplo = 2;
+    }
+    if (transA == HABLAS_OP_N) {
+        args.transA = 0; 
+    } else {
+        args.transA = 1;
+    }
+    if (diag == HABLAS_DIAG_NON_UNIT) {
+        args.diag = 0;
+    } else {
+        args.diag = 1;
+    }
+    args.dim_M = M;
+    args.matrixA = A;
+    args.lda = lda;
+    args.x = X;
+    args.incx = incx;
+    args.workspace = workspace;
+
+    int base_block_size = 128;
+    while (M % base_block_size < 16 && M % base_block_size > 0 && base_block_size > 16) {
+        base_block_size -= 16;
+    }
+    args.base_block_size = base_block_size;
+
+    error = rtKernelLaunch(func_name, 
+                           blockDim, 
+                           (void *)(&args), 
+                           sizeof(args), 
+                           NULL, 
+                           stream);
+    error = rtStreamSynchronize(stream);
+
+    const char *func_name1 = "hablas_htrmv_copy_kernel";
+    error = registerKernel(hablas_htrmv_copy_kernel, func_name1);
+    struct KernelArgs1 {
+        int64_t dim_M;
+        void *x;
+        int64_t incx;
+        void *workspace;
+    };
+	blockDim = 1;
+    KernelArgs1 args1;
+    args1.dim_M = M;
+    args1.incx = incx;
+    args1.x = X;
+    args1.workspace = workspace;
+    error = rtKernelLaunch(func_name1, 
+                           blockDim, 
+                           (void *)(&args1), 
+                           sizeof(args1), 
+                           NULL, 
+                           stream);
+    error = rtStreamSynchronize(stream);
+    return error; 
+}
+
+rtError_t hablasCtrmv(hablasHandle_t handle,
+                      hablasFillMode_t uplo,
+                      hablasOperation_t transA,
+                      hablasDiagType_t diag,
+                      int64_t M,
+                      void *A,
+                      int64_t lda,
+                      void *X,
+                      int64_t incx)
+{
+    rtStream_t stream;
+    rtError_t error;
+    hablasGetStream(handle, &stream);
+    const char *func_name = "hablas_ctrmv_kernel";
+	uint64_t blockDim = CORENUM;
+    error = registerKernel(hablas_ctrmv_kernel, func_name);
+    struct KernelArgs {
+        int64_t uplo;
+        int64_t transA;
+        int64_t diag;
+        int64_t dim_M;
+        void *matrixA;
+        int64_t lda;
+        void *x;
+        int64_t incx;
+        void *workspace;
+        void *workspace1;
+        int64_t base_block_size;
+    };
+    void *workspace = nullptr;
+    error = rtMalloc((void **)&workspace, (int64_t)M * sizeof(haComplex) + 8, RT_MEMORY_HBM);
+    void *workspace1 = nullptr;
+    error = rtMalloc((void **)&workspace1, (int64_t)M * sizeof(haComplex) + 8, RT_MEMORY_HBM);
+
+    KernelArgs args;
+    if (uplo == HABLAS_FILL_MODE_LOWER) {
+        args.uplo = 0;
+    } else if (uplo == HABLAS_FILL_MODE_UPPER){
+        args.uplo = 1;
+    } else {
+        args.uplo = 2;
+    }
+    if (transA == HABLAS_OP_N) {
+        args.transA = 0; 
+    } else if (transA == HABLAS_OP_T) {
+        args.transA = 1;
+    } else {
+        args.transA = 2;
+    }
+    if (diag == HABLAS_DIAG_NON_UNIT) {
+        args.diag = 0;
+    } else {
+        args.diag = 1;
+    }
+    args.dim_M = M;
+    args.matrixA = A;
+    args.lda = lda;
+    args.x = X;
+    args.incx = incx;
+    args.workspace = workspace;
+    args.workspace1 = workspace1;
+
+    int base_block_size = 80;
+    while (M % base_block_size < 8 && M % base_block_size > 0 && base_block_size > 16) {
+        base_block_size -= 8;
+    }
+    args.base_block_size = base_block_size;
+
+    error = rtKernelLaunch(func_name, 
+                           blockDim, 
+                           (void *)(&args), 
+                           sizeof(args), 
+                           NULL, 
+                           stream);
+    error = rtStreamSynchronize(stream);
+
+    const char *func_name1 = "hablas_ctrmv_copy_kernel";
+    error = registerKernel(hablas_ctrmv_copy_kernel, func_name1);
+    struct KernelArgs1 {
+        int64_t dim_M;
+        void *x;
+        int64_t incx;
+        void *workspace;
+    };
+	blockDim = 1;
+    KernelArgs1 args1;
+    args1.dim_M = M;
+    args1.incx = incx;
+    args1.x = X;
+    args1.workspace = workspace;
+    error = rtKernelLaunch(func_name1, 
+                           blockDim, 
+                           (void *)(&args1), 
+                           sizeof(args1), 
+                           NULL, 
+                           stream);
+    error = rtStreamSynchronize(stream);
+    return error; 
+}
+
+rtError_t  hablasStrmv(hablasHandle_t handle,
+                       hablasFillMode_t uplo,
+                       hablasOperation_t transA,
+                       hablasDiagType_t diag,
+                       int64_t M,
+                       void *A,
+                       int64_t lda,
+                       void *X,
+                       int64_t incx)
+{
+    rtStream_t stream;
+    rtError_t error;
+    hablasGetStream(handle, &stream);
+    const char *func_name = "hablas_strmv_kernel";
+	uint64_t blockDim = CORENUM;
+    error = registerKernel(hablas_strmv_kernel, func_name);
+    struct KernelArgs {
+        int64_t uplo;
+        int64_t transA;
+        int64_t diag;
+        int64_t dim_M;
+        void *matrixA;
+        int64_t lda;
+        void *x;
+        int64_t incx;
+        void *workspace;
+        int64_t base_block_size;
+    };
+    void *workspace = nullptr;
+    error = rtMalloc((void **)&workspace, (int64_t)M * sizeof(float) + 8, RT_MEMORY_HBM);
+
+    KernelArgs args;
+    if (uplo == HABLAS_FILL_MODE_LOWER) {
+        args.uplo = 0;
+    } else if (uplo == HABLAS_FILL_MODE_UPPER){
+        args.uplo = 1;
+    } else {
+        args.uplo = 2;
+    }
+    if (transA == HABLAS_OP_N) {
+        args.transA = 0; 
+    } else {
+        args.transA = 1;
+    }
+    if (diag == HABLAS_DIAG_NON_UNIT) {
+        args.diag = 0;
+    } else {
+        args.diag = 1;
+    }
+    args.dim_M = M;
+    args.matrixA = A;
+    args.lda = lda;
+    args.x = X;
+    args.incx = incx;
+    args.workspace = workspace;
+
+    int base_block_size = 128;
+    while (M % base_block_size < 8 && M % base_block_size > 0 && base_block_size > 16) {
+        base_block_size -= 8;
+    }
+    args.base_block_size = base_block_size;
+
+    error = rtKernelLaunch(func_name, 
+                           blockDim, 
+                           (void *)(&args), 
+                           sizeof(args), 
+                           NULL, 
+                           stream);
+    error = rtStreamSynchronize(stream);
+
+    const char *func_name1 = "hablas_strmv_copy_kernel";
+    error = registerKernel(hablas_strmv_copy_kernel, func_name1);
+    struct KernelArgs1 {
+        int64_t dim_M;
+        void *x;
+        int64_t incx;
+        void *workspace;
+    };
+	  blockDim = 1;
+    KernelArgs1 args1;
+    args1.dim_M = M;
+    args1.incx = incx;
+    args1.x = X;
+    args1.workspace = workspace;
+    error = rtKernelLaunch(func_name1, 
+                           blockDim, 
+                           (void *)(&args1), 
+                           sizeof(args1), 
+                           NULL, 
+                           stream);
+    error = rtStreamSynchronize(stream);
+    return error; 
 }
