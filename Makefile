@@ -65,7 +65,7 @@ install: ./build/elf_hablas_hgemm_kernel.o ./build/elf_hablas_hgemm_batched_kern
 ./build/elf_hablas_cgemv_kernel.o: ./src/kernel/cgemv.cc
 	${CC} -c ./src/kernel/cgemv.cc --hacl-device-only ${INC} -o ./build/hablas_cgemv_kernel.o
 	./bin/run_elf_change_hacl_kernel ./build/hablas_cgemv_kernel.o ./build/elf_hablas_cgemv_kernel.o
-  rm -f ./build/hablas_cgemv_kernel.o
+  	rm -f ./build/hablas_cgemv_kernel.o
 
 clean:
 	rm ./build/*.o
