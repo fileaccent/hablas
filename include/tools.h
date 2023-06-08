@@ -128,7 +128,7 @@ HACL_INLINE __aicore__ void hablas_store_matrixC_ub2gm(__gm__ half *gm,
                                                        int64_t n_real,
                                                        int64_t ldc)
 {
-    if (ldc < 16)
+    if (m_real < 16)
     {
         for (int i = 0; i < n_real - 1; ++i)
         {
