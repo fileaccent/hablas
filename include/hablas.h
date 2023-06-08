@@ -11,12 +11,12 @@ rtError_t hablasHgemm(hablasHandle_t handle,
                       int64_t M,
                       int64_t N,
                       int64_t K,
-                      __fp16 alpha,
+                      __fp16 *alpha,
                       __fp16 *A_d,
                       int64_t lda,
                       __fp16 *B_d,
                       int64_t ldb,
-                      __fp16 beta,
+                      __fp16 *beta,
                       __fp16 *C_d,
                       int64_t ldc);
 
@@ -60,10 +60,10 @@ rtError_t hablasHsyrk(hablasHandle_t handle,
                       hablasOperation_t transA,
                       int64_t N,
                       int64_t K,
-                      __fp16 alpha,
+                      __fp16 *alpha,
                       __fp16 *matrixA,
                       int64_t lda,
-                      __fp16 beta,
+                      __fp16 *beta,
                       __fp16 *matrixC,
                       int64_t ldc);
 
@@ -81,6 +81,57 @@ rtError_t hablasHsyr2k(hablasHandle_t handle,
                        __fp16 *matrixC,
                        int64_t ldc);
 
+rtError_t hablasHgemv(hablasHandle_t handle,
+                      hablasOperation_t trans,
+                      int64_t M, 
+                      int64_t N,
+                      __fp16 *alpha,
+                      __fp16 *h_A,
+                      int64_t lda,
+                      __fp16 *h_X,
+                      int64_t incx,
+                      __fp16 *beta,
+                      __fp16 *h_Y,
+                      int64_t incy);
+
+rtError_t hablasSgemv(
+                   hablasHandle_t handle,
+                   hablasOperation_t trans,
+                   int64_t M, 
+                   int64_t N,
+                   float *alpha,
+                   float *input1_hbm,
+                   int64_t lda,
+                   float *input2_hbm,
+                   int64_t incx,
+                   float *beta,
+                   float *input3_hbm,
+                   int64_t incy);
+
+rtError_t hablasHsymv(hablasHandle_t handle,
+                      hablasFillMode_t uplo, 
+                      int64_t N,
+                      __fp16 alpha,
+                      __fp16 *A,
+                      int64_t lda,
+                      __fp16 *x,
+                      int64_t incx,
+                      __fp16 beta,
+                      __fp16 *y,
+                      int64_t incy);
+
+rtError_t hablasSsymv(hablasHandle_t handle,
+                      hablasFillMode_t uplo,
+                      int64_t N,
+                      float alpha,
+                      void *A,
+                      int64_t lda,
+                      void *X,
+                      int64_t incx,
+                      float beta,
+                      void *Y,
+                      int64_t incy);
+
 rtError_t hablasCgemv(hablasHandle_t handle,
                        hablasOperation_t trans,
                        int64_t M,
@@ -93,5 +144,4 @@ rtError_t hablasCgemv(hablasHandle_t handle,
                        void *beta,
                        void *vectorY,
                        int64_t incy);
-
 #endif
