@@ -131,4 +131,46 @@ rtError_t hablasSsymv(hablasHandle_t handle,
                       float beta,
                       void *Y,
                       int64_t incy);
+                    
+rtError_t hablasCsymv(hablasHandle_t handle,
+                      hablasFillMode_t uplo, 
+                      int64_t N,
+                      void *alpha,
+                      void *A,
+                      int64_t lda,
+                      void *X,
+                      int64_t incx,
+                      void *beta,
+                      void *Y,
+                      int64_t incy);
+
+rtError_t hablasHtrmv(hablasHandle_t handle,
+                       hablasFillMode_t uplo,
+                       hablasOperation_t transA,
+                       hablasDiagType_t diag,
+                       int64_t M,
+                       void *A,
+                       int64_t lda,
+                       void *X,
+                       int64_t incx);
+
+rtError_t hablasCtrmv(hablasHandle_t handle,
+                      hablasFillMode_t uplo,
+                      hablasOperation_t transA,
+                      hablasDiagType_t diag,
+                      int64_t M,
+                      void *A,
+                      int64_t lda,
+                      void *X,
+                      int64_t incx);
+
+rtError_t  hablasStrmv(hablasHandle_t handle,
+                       hablasFillMode_t uplo,
+                       hablasOperation_t transA,
+                       hablasDiagType_t diag,
+                       int64_t M,
+                       void *A,
+                       int64_t lda,
+                       void *X,
+                       int64_t incx);
 #endif

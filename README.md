@@ -6,6 +6,7 @@
     | ------- | ---- |
     | 昇腾910A | -DASCEND910A     |
     | 昇腾910B |  -DASCEND910B    |
+    | 昇腾710 |  -DASCEND710    |
 3. 安装
     ```shell
     make install
