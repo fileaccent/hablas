@@ -6,9 +6,11 @@ INC := -I${rt_path} -I./include
 FLAG :=
 ARCH := -DASCEND910B
 TBE :=#-DTBE
+
 all : install
 
 obj := ./build/*.o
+
 
 install: ./build/elf_hablas_hgemm_kernel.o ./build/elf_hablas_hgemm_batched_kernel.o ./build/elf_hablas_hgemm_strided_batched_kernel.o ./build/elf_hablas_hsyrk_kernel.o ./build/elf_hablas_hsyr2k_kernel.o ./build/elf_hablas_hgemv_kernel.o ./build/elf_hablas_sgemv_kernel.o ./build/elf_hablas_ssymv_kernel.o ./build/elf_hablas_hsymv_kernel.o ./src/handle.cc ./src/hablas.cc
 	g++ -fpic ${INC} -c ./src/handle.cc -o ./build/handle.o
@@ -59,6 +61,11 @@ install: ./build/elf_hablas_hgemm_kernel.o ./build/elf_hablas_hgemm_batched_kern
 	${CC} -c ./src/kernel/ssymv.cc --hacl-device-only ${INC} -o ./build/hablas_ssymv_kernel.o
 	./bin/run_elf_change_hacl_kernel ./build/hablas_ssymv_kernel.o ./build/elf_hablas_ssymv_kernel.o
 	rm -f ./build/hablas_ssymv_kernel.o
+
+./build/elf_hablas_cgemv_kernel.o: ./src/kernel/cgemv.cc
+	${CC} -c ./src/kernel/cgemv.cc --hacl-device-only ${INC} -o ./build/hablas_cgemv_kernel.o
+	./bin/run_elf_change_hacl_kernel ./build/hablas_cgemv_kernel.o ./build/elf_hablas_cgemv_kernel.o
+  rm -f ./build/hablas_cgemv_kernel.o
 
 clean:
 	rm ./build/*.o

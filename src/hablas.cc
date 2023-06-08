@@ -10,6 +10,7 @@ extern char hablas_hgemv_kernel;
 extern char hablas_sgemv_kernel;
 extern char hablas_ssymv_kernel;
 extern char hablas_hsymv_kernel;
+extern char hablas_cgemv_kernel;
 
 rtError_t registerKernel(char &k, const char *func_name)
 {
@@ -602,5 +603,77 @@ rtError_t hablasSsymv(hablasHandle_t handle,
     args.Kernel_N = 128;
     error = rtKernelLaunch(func_name, blockDim, (void *)&args,
                            sizeof(args), NULL, stream);
+    return error;
+}
+
+rtError_t hablasCgemv(hablasHandle_t handle,
+                       hablasOperation_t trans,
+                       int64_t M,
+                       int64_t N,
+                       void *alpha,
+                       void *matrixA,
+                       int64_t lda,
+                       void *vectorX,
+                       int64_t incx,
+                       void *beta,
+                       void *vectorY,
+                       int64_t incy)
+{
+    rtError_t error;
+    rtStream_t stream;
+    hablasGetStream(handle, &stream);
+    const char *func_name = "hablas_cgemv_kernel";
+    uint64_t blockDim = CORENUM;
+    error = registerKernel(hablas_cgemv_kernel, func_name);
+
+    struct KernelArgs
+    {
+        int64_t trans;
+        int64_t M;
+        int64_t N;
+        void *alpha_i;
+        void *A;
+        int64_t lda;
+        void *X;
+        int64_t incx;
+        void *beta_i;
+        void *Y;
+        int64_t incy;
+        void *tmp_gm;
+    };
+    KernelArgs args;
+    if (trans == HABLAS_OP_N)
+        args.trans = 0;
+    else if (trans == HABLAS_OP_T)
+        args.trans = 1;
+    else if (trans == HABLAS_OP_C)
+        args.trans = 2;
+    int64_t Y_SIZE = M;
+    if (args.trans != 0) Y_SIZE = N;
+    Y_SIZE *= incy;
+
+    void *tmp_gm = nullptr;
+    error = rtMalloc((void **)&tmp_gm, (int64_t)Y_SIZE * sizeof(haComplex) + 9, RT_MEMORY_HBM);
+
+    args.M = M;
+    args.N = N;
+    args.alpha_i = alpha;
+    args.A = matrixA;
+    args.lda = lda;
+    args.X = vectorX;
+    args.incx = incx;
+    args.beta_i = beta;
+    args.Y = vectorY;
+    args.incy = incy;
+    args.tmp_gm = tmp_gm;
+
+    error = rtKernelLaunch(func_name, blockDim, (void *)&args,
+                           sizeof(args), NULL, stream);
+    if (error == RT_ERROR_NONE) {
+        printf("[SUCCESS]rtKernelLaunch succeed!\n");
+    } else {
+        printf("[FAILED]rtKernelLaunch failed!\n");
+    }
+    error = rtStreamSynchronize(stream);
     return error;
 }
