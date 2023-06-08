@@ -1,5 +1,5 @@
-CC := /home/t_user/zsx-home/code/compiler/bin/haclc
-rt_path := /home/t_user/zsx-home/code/include
+CC := /home/t_user/gyj/build/bin/haclc
+rt_path := /home/t_user/gyj/golden/hgemm/include
 
 LIB :=
 INC := -I${rt_path} -I./include
@@ -76,6 +76,7 @@ install: ./build/elf_hablas_hgemm_kernel.o ./build/elf_hablas_hgemm_batched_kern
 	${CC} -c ./src/kernel/htrmv_main_kernel.cc --hacl-device-only ${INC} -o ./build/hablas_htrmv_main_kernel.o
 	./bin/run_elf_change_hacl_kernel ./build/hablas_htrmv_main_kernel.o ./build/elf_hablas_htrmv_main_kernel.o
 	rm -f ./build/hablas_htrmv_main_kernel.o
+  
 ./build/elf_hablas_htrmv_copy_kernel.o: ./src/kernel/htrmv_copy_kernel.cc
 	${CC} -c ./src/kernel/htrmv_copy_kernel.cc --hacl-device-only ${INC} -o ./build/hablas_htrmv_copy_kernel.o
 	./bin/run_elf_change_hacl_kernel ./build/hablas_htrmv_copy_kernel.o ./build/elf_hablas_htrmv_copy_kernel.o

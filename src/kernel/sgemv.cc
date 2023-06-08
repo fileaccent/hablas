@@ -239,8 +239,8 @@ extern "C" __global__ __aicore__ void hablas_sgemv_kernel(
                 } else {
                     int64_t load_data_num = (ub_buffer_size) / incx * incx;
                     if (load_data_num == 0) load_data_num++;
-                    int64_t loop = x_block_size_pad * incx / load_data_num;
-                    int64_t remain = x_block_size_pad * incx % load_data_num;
+                    int64_t loop = (x_block_size * incx - incx + 1) / load_data_num;
+                    int64_t remain = (x_block_size * incx - incx + 1) % load_data_num;
                     set_flag(PIPE_S, PIPE_MTE2, 3);
                     for (int loop_index = 0; loop_index < loop; loop_index++) {
                         wait_flag(PIPE_S, PIPE_MTE2, 3);
