@@ -6,8 +6,13 @@
     | ------- | ---- |
     | 昇腾910A | -DASCEND910A     |
     | 昇腾910B |  -DASCEND910B    |
+    | 昇腾710 |  -DASCEND710    |
 3. 安装
     ```shell
+    git clone https://github.com/deltaguo/hablas.git
+    cd hablas
+    mkdir lib
+    mkdir build
     make install
     ```
 

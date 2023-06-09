@@ -5,6 +5,8 @@
 #define CORENUM 32
 #elif ASCEND910B
 #define CORENUM 30
+#elif ASCEND710
+#define CORENUM 8
 #else
 #define CORENUM 32
 #endif
@@ -28,5 +30,10 @@ typedef enum
     HABLAS_DIAG_NON_UNIT,
     HABLAS_DIAG_UNIT
 } hablasDiagType_t;
+
+typedef struct {
+    float real;
+    float imag;
+} haComplex;
 
 #endif
