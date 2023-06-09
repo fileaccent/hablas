@@ -13,6 +13,12 @@
 
 typedef enum
 {
+    HABLAS_SIDE_LEFT,
+    HABLAS_SIDE_RIGHT
+} hablasSideMode_t;
+
+typedef enum
+{
     HABLAS_OP_N,
     HABLAS_OP_T,
     HABLAS_OP_C
