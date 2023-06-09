@@ -186,4 +186,19 @@ rtError_t hablasCgemv(hablasHandle_t handle,
                        void *beta,
                        void *vectorY,
                        int64_t incy);
+
+rtError_t hablasHtrmm(hablasHandle_t handle,
+                       hablasSideMode_t side,
+                       hablasFillMode_t uplo,
+                       hablasOperation_t transA,
+                       hablasDiagType_t diag,
+                       int64_t M,
+                       int64_t N,
+                       __fp16 *alpha,
+                       __fp16 *A_d,
+                       int64_t lda,
+                       __fp16 *B_d,
+                       int64_t ldb,
+                       __fp16 *C_d,
+                       int64_t ldc);
 #endif
