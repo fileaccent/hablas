@@ -18,6 +18,7 @@ extern char hablas_ctrmv_kernel;
 extern char hablas_ctrmv_copy_kernel;
 extern char hablas_csymv_kernel;
 extern char hablas_cgemv_kernel;
+extern char hablas_htrmm_kernel;
 
 rtError_t registerKernel(char &k, const char *func_name)
 {
@@ -1039,4 +1040,85 @@ rtError_t  hablasStrmv(hablasHandle_t handle,
                            stream);
     error = rtStreamSynchronize(stream);
     return error; 
+}
+
+rtError_t hablasHtrmm(hablasHandle_t handle,
+                       hablasSideMode_t side,
+                       hablasFillMode_t uplo,
+                       hablasOperation_t transA,
+                       hablasDiagType_t diag,
+                       int64_t M,
+                       int64_t N,
+                       __fp16 *alpha,
+                       __fp16 *A_d,
+                       int64_t lda,
+                       __fp16 *B_d,
+                       int64_t ldb,
+                       __fp16 *C_d,
+                       int64_t ldc)
+{
+    rtError_t error;
+    rtStream_t stream;
+    hablasGetStream(handle, &stream);
+    const char *func_name = "hablas_htrmm_kernel";
+    uint64_t blockDim = ((M - 1) / 256 + 1) * ((N - 1) / 256 + 1);
+    std::cout << "blockDim: " << blockDim << std::endl;
+    error = registerKernel(hablas_htrmm_kernel, func_name);
+
+    int64_t A_SIZE;
+    int64_t B_SIZE = ldb * N;
+    if (side == HABLAS_SIDE_LEFT) {
+        A_SIZE = lda * M;
+    } else {
+        lda = N;
+        A_SIZE = lda * N;
+    }
+    
+    struct KernelArgs 
+    {
+        hablasSideMode_t side;
+        hablasFillMode_t uplo;
+        hablasOperation_t transA;
+        hablasDiagType_t diag;
+        int64_t M;
+        int64_t N;
+        __fp16 alpha;
+        void *matrixA;
+        int64_t lda;
+        void *matrixB;
+        int64_t ldb;
+        void *matrixC;
+        int64_t ldc;
+    };
+    KernelArgs args;
+    args.side = side;
+    args.uplo = uplo;
+    args.transA = transA;
+    args.diag = diag;
+    args.M = M;
+    args.N = N;
+    args.alpha = *alpha;
+    args.matrixA = A_d;
+    args.lda = lda;
+    args.matrixB = B_d;
+    args.ldb = ldb;
+    args.matrixC = C_d;
+    args.ldc = ldc;
+
+    error = rtKernelLaunch((void *)func_name, 
+                           blockDim, 
+                           (void *)(&args), 
+                           sizeof(args), 
+                           NULL, 
+                           stream);
+
+    if (error == RT_ERROR_NONE)
+    {
+        printf("[SUCCESS]rtKernelLaunch succeed!\n");
+    }
+    else
+    {
+        printf("[FAILED]rtKernelLaunch failed!\n");
+    }
+    return error;
 }
