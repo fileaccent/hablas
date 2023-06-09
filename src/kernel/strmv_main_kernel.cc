@@ -473,6 +473,8 @@ extern "C" __global__ __aicore__ void hablas_strmv_kernel(int64_t uplo,
             }
         }
         wait_flag(PIPE_V, PIPE_MTE3, 0);
+        set_flag(PIPE_V, PIPE_S, 0);
+        wait_flag(PIPE_V, PIPE_S, 0);
         hablas_memcpy(wk_ptr, ub_res_block_real_ptr, m_real, M); 
     }
 

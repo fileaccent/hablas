@@ -29,9 +29,9 @@ def dump_data(input_data, name, fmt, data_type):
                 f_output.write("\n")
 
 def calc_expect_func(m, lda, incx, uplo, trans, diag):
-    input1 = np.random.uniform(1, 1, size=(m, lda,)).astype(np.float16)
+    input1 = np.random.uniform(0, 1, size=(lda, m,)).astype(np.float16)
 
-    input2 = np.random.uniform(1, 1, size=(m * incx,)).astype(np.float16)
+    input2 = np.random.uniform(0, 1, size=(m * incx,)).astype(np.float16)
     
     dump_data(input1.ravel('F'),
               "./data/input1" + ".bin",
@@ -58,8 +58,7 @@ def calc_expect_func(m, lda, incx, uplo, trans, diag):
                 if (diag == 1 and j == i) :
                     input1[i][j] = 1
 
-    
-    input1_true = input1[:, 0:m]
+    input1_true = input1[0:m, :]
     input2_true = input2[::incx]
     if trans == 0 :
         y_ture = (np.matmul(input1_true.astype(np.float32), input2_true.astype(np.float32))).astype(np.float16) 

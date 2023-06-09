@@ -45,6 +45,7 @@ HACL_INLINE __aicore__ void hablas_load_matrix_gm2ub(__ub__ half *ub_ptr,
 {
     if (m_real % 16 || (stride - m_real) % 16) {
         for (int i = 0; i < n_real; ++i) {
+pipe_barrier(PIPE_ALL);
             _memcpy(ub_ptr + i * m_real_pad, gm_ptr + i * stride, 1, m_real_pad / 16, 0, 0);
         }
     }
@@ -159,9 +160,9 @@ HACL_INLINE __aicore__ void hablas_fill_zero(__ub__ half *dst,
         1,// src0 block stride
         1// src1 block stride
     );
-    set_flag(PIPE_V, PIPE_S, 3);
-    wait_flag(PIPE_V, PIPE_S, 3);
     if (diag) {
+        set_flag(PIPE_V, PIPE_S, 3);
+        wait_flag(PIPE_V, PIPE_S, 3);
         for (int64_t i = 0; i < m_real; ++i) {
             for (int j = i; j <= i; ++j) {
                 *(dst + i * m_real_pad + j) = 1.0;
@@ -222,6 +223,8 @@ void hablas_htrmv_kernel(int64_t uplo,
             128 / 16, // dst repeat stride
             1 // dst block stride
         );
+        set_flag(PIPE_V, PIPE_S, 2);
+        wait_flag(PIPE_V, PIPE_S, 2);
         for (int i = 0; i < 128; ++i) {
             vec_dup(ub_uplo_matrix + 128 * i, half(1.0), i + 1);
         }
@@ -234,6 +237,8 @@ void hablas_htrmv_kernel(int64_t uplo,
             128 / 16, // dst repeat stride
             1 // dst block stride
         );
+        set_flag(PIPE_V, PIPE_S, 2);
+        wait_flag(PIPE_V, PIPE_S, 2);
         for (int i = 0; i < 128; ++i) {
             set_flag(PIPE_S, PIPE_V, 2);
             wait_flag(PIPE_S, PIPE_V, 2);
@@ -245,7 +250,7 @@ void hablas_htrmv_kernel(int64_t uplo,
     }
 pipe_barrier(PIPE_ALL);
 
-    int64_t m = 128;
+    int64_t m = base_block_size;
 
     int64_t m_tiles  = (M + m - 1) / m;
     int64_t n_tiles  = 1;
@@ -326,7 +331,7 @@ pipe_barrier(PIPE_ALL);
                 wait_flag(PIPE_V, PIPE_MTE3, 0);
 
                 wait_flag(PIPE_MTE1, PIPE_MTE3, 0); // 等待L1A读完
-                hablas_load_matrix_ub2l1(L1A.get_ptr(0), ubA2, m_real_pad, k_real_pad);             
+                hablas_load_matrix_ub2l1(L1A.get_ptr(0), ubA2, m_real_pad, k_real_pad);
                 set_flag(PIPE_MTE3, PIPE_V, 0); // ubA2缓冲区读完
 
                 set_flag(PIPE_MTE3, PIPE_MTE1, 0);
@@ -343,6 +348,7 @@ pipe_barrier(PIPE_ALL);
             } else {
                 __gm__ half *A_ptr = matrixA + m * row + k_idx * m * lda;
                 wait_flag(PIPE_V, PIPE_MTE2, 0); // 等待ubA1缓冲区读完
+
                 hablas_load_matrix_gm2ub(ubA1, A_ptr, m_real, m_real_pad, k_real, k_real_pad, lda);
                 set_flag(PIPE_MTE2, PIPE_V, 0);
                 wait_flag(PIPE_MTE2, PIPE_V, 0);
@@ -373,8 +379,8 @@ pipe_barrier(PIPE_ALL);
                     load2d(inputB.get_ptr(0) + i * m_real_pad * 16, 
                            L1A.get_ptr(0), 
                            i,                   // index 
-                           k_real_pad / 16,     // repeat 
-                           m_real_pad / 16,     // src_stride 
+                           m_real_pad / 16,     // repeat 
+                           k_real_pad / 16,     // src_stride 
                            1);                  // transpose
                 }
                 set_flag(PIPE_MTE1, PIPE_MTE3, 0); // L1A读完
@@ -386,18 +392,14 @@ pipe_barrier(PIPE_ALL);
 
             set_flag(PIPE_MTE2, PIPE_MTE3, 1);
             wait_flag(PIPE_MTE2, PIPE_MTE3, 1);
-      
             wait_flag(PIPE_MTE1, PIPE_MTE3, 1); // 等待L1B读完
             hablas_load_matrix_ub2l1(L1B.get_ptr(0), ubX1, 1, k_real_pad);
 
-      
             set_flag(PIPE_MTE3, PIPE_MTE2, 1);// ubX1读完
             set_flag(PIPE_MTE3, PIPE_MTE1, 1);
             wait_flag(PIPE_MTE3, PIPE_MTE1, 1);
 
-
-      
-            wait_flag(PIPE_M, PIPE_MTE1, 1);// 等待inputA读完           
+            wait_flag(PIPE_M, PIPE_MTE1, 1);// 等待inputA读完
             load2d(inputA.get_ptr(0),
                     L1B.get_ptr(0),
                     0,                                     // index
@@ -421,7 +423,6 @@ pipe_barrier(PIPE_ALL);
             if (k_idx == k_dst - 1) {
                 set_flag(PIPE_M, PIPE_V, 0);
             } 
-     
         }
         wait_flag(PIPE_MTE3, PIPE_V, 2);// 等待ubR1读完 
         wait_flag(PIPE_M, PIPE_V, 0);
@@ -430,9 +431,11 @@ pipe_barrier(PIPE_ALL);
  
         set_flag(PIPE_V, PIPE_MTE3, 2);
         wait_flag(PIPE_V, PIPE_MTE3, 2);
+        set_flag(PIPE_V, PIPE_S, 2);
+        wait_flag(PIPE_V, PIPE_S, 2);
+
         hablas_memcpy(W_ptr, ubR1, m_real, M);
         set_flag(PIPE_MTE3, PIPE_V, 2);// ubR1读完 
-     
     }
 
     wait_flag(PIPE_V, PIPE_MTE2, 0);

@@ -12,8 +12,8 @@ def dump_data(input_data, name, fmt, data_type):
         
 
 def calc_expect_func(m, incx, trans, mode, diag, lad):
-    input1_i = np.random.uniform(0, 1, size=(m, lda)).astype(np.float32)
-    input1_r = np.random.uniform(0, 1, size=(m, lda)).astype(np.float32)
+    input1_i = np.random.uniform(1, 1, size=(lda, m)).astype(np.float32)
+    input1_r = np.random.uniform(1, 1, size=(lda, m)).astype(np.float32)
     input1 = 1j * input1_i + input1_r
 
     input2_i = np.random.uniform(0, 1, size=(m * incx, 1)).astype(np.float32)

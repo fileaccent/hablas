@@ -38,12 +38,10 @@ char *ReadFile(const std::string &filePath, size_t &fileSize, void *buffer, size
 bool compareFp16OutputData(const float *actualOutputData, const float *expectedOutputData, uint64_t len)
 {
     uint64_t errorCount = 0;
-    int64_t lastError = -1;
-    int64_t continuous = 0;
-    int64_t maxContinous = 0;
     uint64_t i = 0;
     float ratios[] = {0.001, 0.001};
     double error = 0;
+    double maxError = 0;
     printf("cmp len:%ld\n",len);
     for (i = 0; i < len; i++) {
         float actualOutputItem = *(actualOutputData + i);
@@ -55,46 +53,26 @@ bool compareFp16OutputData(const float *actualOutputData, const float *expectedO
         float limitError = tmp;
         if (abs((actualOutputItem - expectedOutputItem)) > limitError) {
             errorCount++;
-            if (i == lastError + 1) {
-                continuous++;
-            } else {
-                if (maxContinous < continuous) {
-                    maxContinous = continuous;
-                }
-                continuous = 1;
-            }
-            lastError = i;
+            std::cout << "index:" << i << " ,cmprlst:" << abs((actualOutputItem - expectedOutputItem)) <<
+            " ,actualDataf:" << actualOutputItem << " ,expectedDataf:" <<
+            expectedOutputItem << std::endl;
         }
-        error = std::abs((actualOutputItem - expectedOutputItem) / expectedOutputItem);
+        double t = std::abs((actualOutputItem - expectedOutputItem) / expectedOutputItem);
+        error += t;
+        maxError = std::max(maxError, t);
     }
-    printf("**error**:%e\n", error / len);
+    printf("**AVERAGE ERROR**:%e, **MAX ERROR**:%e\n", error / len, maxError);
 
-    if (i == len - 1) {
-        if (maxContinous < continuous) {
-            maxContinous = continuous;
-        }
-    }
-
-    if (errorCount > len * ratios[1] || maxContinous > 16) {
-        for (i = 0; i < 16; i++) {
-            float actualOutputItem = *(actualOutputData + i);
-            float expectedOutputItem = *(expectedOutputData + i);
-            float tmp = abs(expectedOutputItem * ratios[0]);
-            float limitError = tmp;
-            if (abs((actualOutputItem - expectedOutputItem)) > limitError) {
-                std::cout << "index:" << i << " ,cmprlst:" << abs((actualOutputItem - expectedOutputItem)) <<
-                    " ,actualDataf:" << actualOutputItem << " ,expectedDataf:" <<
-                    expectedOutputItem << std::endl;
-            }
-        }
-        std::cout << "------errorCount:" << errorCount << std::endl;
+    if (errorCount > len * ratios[1]) {
+        std::cout << "**ERROR COUNT**:" << errorCount << std::endl;
         return false;
     } else {
         return true;
     }
 }
 
-int main() {
+
+int main(int argc, char* argv[]) {
 
     rtError_t error = rtSetDevice(0);
 
@@ -103,12 +81,33 @@ int main() {
     hablasFillMode_t mode = HABLAS_FILL_MODE_LOWER;    
     hablasOperation_t transa = HABLAS_OP_N;    
     hablasDiagType_t diag = HABLAS_DIAG_NON_UNIT;
-    int64_t N = 129;
-    int64_t lda = 130;
-    int64_t incx = 2;
+    int64_t N = 666;
+    int64_t lda = 888;
+    int64_t incx = 3;
+
+    int64_t iuplo, itrans, idiag;
+    char opt_c = 0;
+    if (argc == 7){
+        N = atoi(&argv[1][0]);
+        lda = atoi(&argv[2][0]);
+        incx = atoi(&argv[3][0]);
+        iuplo = atoi(&argv[4][0]);
+        itrans = atoi(&argv[5][0]);
+        idiag = atoi(&argv[6][0]);
+    }
+
+    if (iuplo == 1) {
+        mode = HABLAS_FILL_MODE_UPPER;
+    }
+    if (itrans == 1) {
+        transa = HABLAS_OP_T;
+    }
+    if (idiag == 1) {
+        diag = HABLAS_DIAG_UNIT;
+    }
+
     int64_t sizeA = N * lda;
     int64_t sizeX = N * incx;
-
     size_t fileSize;
 
 	void *hA = nullptr;

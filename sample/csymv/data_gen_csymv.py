@@ -13,8 +13,8 @@ def dump_data(input_data, name, fmt, data_type):
 
 def calc_expect_func(n, type, incx, incy, lda):
     #A
-    input1_i = np.random.uniform(0, 1.0, size=(n, lda)).astype(np.float32)
-    input1_r = np.random.uniform(0, 1.0, size=(n, lda)).astype(np.float32)
+    input1_i = np.random.uniform(0, 1.0, size=(lda, n)).astype(np.float32)
+    input1_r = np.random.uniform(0, 1.0, size=(lda, n)).astype(np.float32)
     input1 = 1j * input1_i + input1_r
     #X
     input2_i = np.random.uniform(0, 1.0, size=(n * incx, 1)).astype(np.float32)
@@ -40,14 +40,14 @@ def calc_expect_func(n, type, incx, incy, lda):
 
     # print(input1)
 
-    alpha_i = np.random.uniform(0, 0, size=(1, 1)).astype(np.float32)
-    alpha_r = np.random.uniform(1, 1, size=(1, 1)).astype(np.float32)
+    alpha_i = np.random.uniform(0, 1, size=(1, 1)).astype(np.float32)
+    alpha_r = np.random.uniform(0, 1, size=(1, 1)).astype(np.float32)
     alpha = 1j * alpha_i + alpha_r
     # print(alpha)
     dump_data(alpha, "./data/alpha.bin", fmt = "binary", data_type = "float32")
 
-    beta_i = np.random.uniform(0, 0, size=(1, 1)).astype(np.float32)
-    beta_r = np.random.uniform(1, 1, size=(1, 1)).astype(np.float32)
+    beta_i = np.random.uniform(0, 1, size=(1, 1)).astype(np.float32)
+    beta_r = np.random.uniform(0, 1, size=(1, 1)).astype(np.float32)
     beta = 1j * beta_i + beta_r
     # print(beta)
     dump_data(beta, "./data/beta.bin", fmt = "binary", data_type = "float32")
