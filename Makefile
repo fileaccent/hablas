@@ -12,7 +12,7 @@ all : install
 obj := ./build/*.o
 
 
-install: ./build/elf_hablas_hgemm_kernel.o ./build/elf_hablas_hgemm_batched_kernel.o ./build/elf_hablas_hgemm_strided_batched_kernel.o ./build/elf_hablas_hsyrk_kernel.o ./build/elf_hablas_hsyr2k_kernel.o ./build/elf_hablas_hgemv_kernel.o ./build/elf_hablas_sgemv_kernel.o ./build/elf_hablas_cgemv_kernel.o ./build/elf_hablas_ssymv_kernel.o ./build/elf_hablas_hsymv_kernel.o ./build/elf_hablas_csymv_kernel.o ./build/elf_hablas_htrmv_main_kernel.o ./build/elf_hablas_htrmv_copy_kernel.o ./build/elf_hablas_strmv_main_kernel.o ./build/elf_hablas_strmv_copy_kernel.o ./build/elf_hablas_ctrmv_main_kernel.o ./build/elf_hablas_ctrmv_copy_kernel.o ./src/handle.cc ./src/hablas.cc
+install: ./build/elf_hablas_hgemm_kernel.o ./build/elf_hablas_hgemm_batched_kernel.o ./build/elf_hablas_hgemm_strided_batched_kernel.o ./build/elf_hablas_hsyrk_kernel.o ./build/elf_hablas_hsyr2k_kernel.o ./build/elf_hablas_hgemv_kernel.o ./build/elf_hablas_sgemv_kernel.o ./build/elf_hablas_cgemv_kernel.o ./build/elf_hablas_ssymv_kernel.o ./build/elf_hablas_hsymv_kernel.o ./build/elf_hablas_csymv_kernel.o ./build/elf_hablas_htrmv_main_kernel.o ./build/elf_hablas_htrmv_copy_kernel.o ./build/elf_hablas_strmv_main_kernel.o ./build/elf_hablas_strmv_copy_kernel.o ./build/elf_hablas_ctrmv_main_kernel.o ./build/elf_hablas_ctrmv_copy_kernel.o ./build/elf_hablas_htrmm_kernel.o ./src/handle.cc ./src/hablas.cc
 	g++ -fpic ${INC} -c ./src/handle.cc -o ./build/handle.o
 	g++ -fpic ${INC} ${ARCH} -c ./src/hablas.cc -o ./build/hablas.o
 	g++ -shared ./build/*.o -o ./lib/libhablas.so
