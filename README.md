@@ -9,6 +9,9 @@
     | 昇腾710 |  -DASCEND710    |
 3. 安装
     ```shell
+    cd hablas
+    mkdir lib
+    mkdir build
     make install
     ```
 
