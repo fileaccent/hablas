@@ -122,6 +122,7 @@ HACL_INLINE __aicore__ void hablas_store_matrixC_nZ2ND(__ub__ half *ub_buffer1,
 
 HACL_INLINE __aicore__ void hablas_store_matrixC_ub2gm(__gm__ half *gm,
                                                        __ub__ half *ub_buffer1,
+                                                       __ub__ half *workspace,
                                                        int64_t m_real_pad,
                                                        int64_t n_real_pad,
                                                        int64_t m_real,
@@ -130,25 +131,25 @@ HACL_INLINE __aicore__ void hablas_store_matrixC_ub2gm(__gm__ half *gm,
 {
     if (m_real < 16)
     {
-        for (int i = 0; i < n_real - 1; ++i)
+        int offset = 16 - m_real;
+        set_flag(PIPE_MTE3, PIPE_MTE2, 0);
+        for (int i = 0; i < n_real; ++i)
         {
-            _memcpy(gm + i * ldc, ub_buffer1 + i * m_real_pad, 1, 1, 0, 0);
+            wait_flag(PIPE_MTE3, PIPE_MTE2, 0);
+            _memcpy(workspace, gm + i * ldc - offset, 1, 1, 0, 0);
+            set_flag(PIPE_MTE2, PIPE_S, 0);
+            wait_flag(PIPE_MTE2, PIPE_S, 0);
+            for (int j = 0; j < m_real; ++j)
+            {
+                *(workspace + offset + j) = *(ub_buffer1 + i * m_real_pad + j);
+            }
+            set_flag(PIPE_S, PIPE_MTE3, 0);
+            wait_flag(PIPE_S, PIPE_MTE3, 0);
+            _memcpy(gm + i * ldc - offset, workspace, 1, 1, 0, 0);
+            set_flag(PIPE_MTE3, PIPE_MTE2, 0);
             pipe_barrier(PIPE_MTE3);
         }
-        set_flag(PIPE_MTE3, PIPE_MTE2, 0);
         wait_flag(PIPE_MTE3, PIPE_MTE2, 0);
-        int offset = 16 - ldc;
-        __ub__ half *workspace = (n_real == 1 ? ub_buffer1 + 16 : ub_buffer1);
-        _memcpy(workspace, gm + (n_real - 1) * ldc - offset, 1, 1, 0, 0);
-        set_flag(PIPE_MTE2, PIPE_S, 0);
-        wait_flag(PIPE_MTE2, PIPE_S, 0);
-        for (int i = 0; i < m_real; ++i)
-        {
-            *(workspace + offset + i) = *(ub_buffer1 + (n_real - 1) * m_real_pad + i);
-        }
-        set_flag(PIPE_S, PIPE_MTE3, 0);
-        wait_flag(PIPE_S, PIPE_MTE3, 0);
-        _memcpy(gm + (n_real - 1) * ldc - offset, workspace, 1, 1, 0, 0);
     }
     else if (m_real % 16 || (ldc - m_real) % 16)
     {
@@ -482,14 +483,14 @@ HACL_INLINE __aicore__ void hablas_load_Matrix_dig_lower(__ub__ half *dst,
 }
 
 HACL_INLINE __aicore__ void hablas_load_matrix_diag_gm2ub(__ub__ half *ub_buffer0,
-                                                     __gm__ half *gm,
-                                                     int64_t m_real_pad,
-                                                     int64_t n_real_pad,
-                                                     int64_t m_real,
-                                                     int64_t n_real,
-                                                     int64_t stride,
-                                                     hablasDiagType_t diag,
-                                                     hablasFillMode_t uplo)
+                                                          __gm__ half *gm,
+                                                          int64_t m_real_pad,
+                                                          int64_t n_real_pad,
+                                                          int64_t m_real,
+                                                          int64_t n_real,
+                                                          int64_t stride,
+                                                          hablasDiagType_t diag,
+                                                          hablasFillMode_t uplo)
 {
     if (m_real % 16 || (stride - m_real) % 16)
     {
@@ -503,21 +504,30 @@ HACL_INLINE __aicore__ void hablas_load_matrix_diag_gm2ub(__ub__ half *ub_buffer
         _memcpy(ub_buffer0, gm, n_real, m_real / 16, 0, (stride - m_real) / 16);
     }
     pipe_barrier(PIPE_ALL);
-    if (uplo == HABLAS_FILL_MODE_LOWER) {
-        for(int col = 0; col < n_real; col++) {
-            for(int row = 0; row < col; row++) {
+    if (uplo == HABLAS_FILL_MODE_LOWER)
+    {
+        for (int col = 0; col < n_real; col++)
+        {
+            for (int row = 0; row < col; row++)
+            {
                 *(ub_buffer0 + col * m_real_pad + row) = 0.0;
             }
-            if(diag == HABLAS_DIAG_UNIT) {
+            if (diag == HABLAS_DIAG_UNIT)
+            {
                 *(ub_buffer0 + col * m_real_pad + col) = 1.0;
             }
         }
-    } else {
-        for(int col = 0; col < n_real; col++) {
-            for(int row = col + 1; row < m_real; row++) {
+    }
+    else
+    {
+        for (int col = 0; col < n_real; col++)
+        {
+            for (int row = col + 1; row < m_real; row++)
+            {
                 *(ub_buffer0 + col * m_real_pad + row) = 0.0;
             }
-            if(diag == HABLAS_DIAG_UNIT) {
+            if (diag == HABLAS_DIAG_UNIT)
+            {
                 *(ub_buffer0 + col * m_real_pad + col) = 1.0;
             }
         }

@@ -236,7 +236,7 @@ extern "C" __global__ __aicore__ void hablas_hgemm_kernel(__gm__ half *matrixA,
 #endif
         set_flag(PIPE_V, PIPE_MTE3, 3);
         wait_flag(PIPE_V, PIPE_MTE3, 3);
-        hablas_store_matrixC_ub2gm(C_ptr, ub_buffer1, m_real_pad, n_real_pad, m_real, n_real, ldc);
+        hablas_store_matrixC_ub2gm(C_ptr, ub_buffer1, ub_buffer0, m_real_pad, n_real_pad, m_real, n_real, ldc);
         set_flag(PIPE_MTE3, PIPE_MTE2, 1);
     }
     wait_flag(PIPE_MTE3, PIPE_MTE2, 1);
