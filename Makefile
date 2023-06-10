@@ -105,5 +105,5 @@ install: ./build/elf_hablas_hgemm_kernel.o ./build/elf_hablas_hgemm_batched_kern
 	rm -f ./build/hablas_htrmm_kernel.o
 
 clean:
-	rm ./build/elf_hablas_hgemm_batched_kernel.o
+	rm ./build/*.o
 	rm ./lib/libhablas.so
