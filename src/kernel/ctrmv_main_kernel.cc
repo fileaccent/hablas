@@ -625,6 +625,8 @@ pipe_barrier(PIPE_ALL);
         wait_flag(PIPE_V, PIPE_MTE3, 0);
 
         wait_flag(PIPE_MTE2, PIPE_MTE3, 0);// waiting for tmp_gm_ptr
+        set_flag(PIPE_V, PIPE_S, 0);
+        wait_flag(PIPE_V, PIPE_S, 0);
         hablas_memcpy(tmp_gm_ptr, ub_res_block_imag_ptr, m_real * 2, M * 2);
         set_flag(PIPE_MTE3, PIPE_MTE2, 0);
         wait_flag(PIPE_MTE3, PIPE_MTE2, 0);
@@ -642,7 +644,8 @@ pipe_barrier(PIPE_ALL);
         vec_add(ub_res_block_real_ptr, ub_res_block_imag_ptr, ub_res_block_real_ptr, m_real * 2);
         set_flag(PIPE_V, PIPE_MTE3, 0);
         wait_flag(PIPE_V, PIPE_MTE3, 0);
-
+        set_flag(PIPE_V, PIPE_S, 0);
+        wait_flag(PIPE_V, PIPE_S, 0);
         hablas_memcpy(wk_ptr, ub_res_block_real_ptr, m_real * 2, M * 2);
         set_flag(PIPE_MTE3, PIPE_V, 0); // waiting for ub_res_block_real_ptr
     }
