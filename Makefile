@@ -99,6 +99,11 @@ install: ./build/elf_hablas_hgemm_kernel.o ./build/elf_hablas_hgemm_batched_kern
 	./bin/run_elf_change_hacl_kernel ./build/hablas_ctrmv_copy_kernel.o ./build/elf_hablas_ctrmv_copy_kernel.o
 	rm -f ./build/hablas_ctrmv_copy_kernel.o
 
+./build/elf_hablas_htrmm_kernel.o: ./src/kernel/htrmm.cc
+	${CC} -c ./src/kernel/htrmm.cc --hacl-device-only ${INC} -o ./build/hablas_htrmm_kernel.o
+	./bin/run_elf_change_hacl_kernel ./build/hablas_htrmm_kernel.o ./build/elf_hablas_htrmm_kernel.o
+	rm -f ./build/hablas_htrmm_kernel.o
+
 clean:
 	rm ./build/*.o
 	rm ./lib/libhablas.so
