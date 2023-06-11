@@ -51,7 +51,7 @@ extern "C" __global__ __aicore__ void hablas_hgemm_kernel(__gm__ half *matrixA,
     int64_t n_remain = N % n;
     int64_t k_remain = K % k;
 
-    while (M >= 16 && m_remain && m_remain < 16)
+    while (m > 16 && m_remain && m_remain < 16)
     {
         m -= 16;
         m_remain = M % m;

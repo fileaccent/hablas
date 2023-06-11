@@ -48,7 +48,7 @@ extern "C" __global__ __aicore__ void hablas_hsyr2k_kernel(__gm__ half *matrixA,
     int64_t n_remain = N % n;
     int64_t k_remain = K % k;
 
-    while (N >= 16 && n_remain && n_remain < 16)
+    while (n > 16 && n_remain && n_remain < 16)
     {
         n -= 16;
         n_remain = N % n;
@@ -107,7 +107,7 @@ extern "C" __global__ __aicore__ void hablas_hsyr2k_kernel(__gm__ half *matrixA,
         int64_t id = i * block_num + block_idx;
         int64_t row = ((int)sqrt(8.f * id + 1.f) - 1) / 2;
         int64_t col = id - (row + 1) * row / 2;
-        if (!uplo)
+        if (uplo == HABLAS_FILL_MODE_UPPER)
         {
             int t = row;
             row = col;
@@ -322,7 +322,6 @@ extern "C" __global__ __aicore__ void hablas_hsyr2k_kernel(__gm__ half *matrixA,
         wait_flag(PIPE_V, PIPE_MTE3, 3);
 
         hablas_store_matrixC_ub2gm(C_ptr, ub_buffer1, ub_buffer0, m_real_pad, n_real_pad, m_real, n_real, ldc);
-
         set_flag(PIPE_MTE3, PIPE_MTE2, 1);
     }
     wait_flag(PIPE_MTE3, PIPE_MTE2, 1);

@@ -45,7 +45,7 @@ extern "C" __global__ __aicore__ void hablas_hsyrk_kernel(__gm__ half *matrixA,
     int64_t n_remain = N % n;
     int64_t k_remain = K % k;
 
-    while (N >= 16 && n_remain && n_remain < 16)
+    while (n > 16 && n_remain && n_remain < 16)
     {
         n -= 16;
         n_remain = N % n;
@@ -113,8 +113,6 @@ extern "C" __global__ __aicore__ void hablas_hsyrk_kernel(__gm__ half *matrixA,
             int64_t t = row;
             row = col;
             col = t;
-            low_flag = 1;
-            up_flag = 0;
         }
         int64_t m_real = n;
         int64_t n_real = n;
