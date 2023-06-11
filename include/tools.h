@@ -445,40 +445,55 @@ HACL_INLINE __aicore__ void hablas_store_Vector_ub2gm(__gm__ half *dst,
 }
 
 HACL_INLINE __aicore__ void hablas_load_Matrix_dig_upper(__ub__ half *dst,
+                                                         __ub__ half *mask,
+                                                         __ub__ half *mask_dia,
                                                          int n_real_pad)
 {
     Vector<half_16, 16, HACL_UB> ub_temp;
+    Vector<half_16, 16, HACL_UB> ub_tran;
 
-    int n_loop = n_real_pad / 16;
-
-    for (int a = 0; a < n_loop; a++)
+    int n_loop = n_real_pad / 16 ;
+     
+    for(int i = 0; i < n_loop; i++){
+    	for(int j = 0; j < i; j++){
+    		vec_trans(dst + i * n_real_pad * 16 + j * 256, dst + j * n_real_pad * 16 + i * 256, 1, 1, 1);
+    	}
+    }
+     
+    // pipe_barrier(PIPE_V);
+    for(int a = 0; a < n_loop; a++)
     {
-        vec_trans(ub_temp.get_ptr(0), dst + a * n_real_pad * 16 + a * 256, 1, 1, 1);
-        set_flag(PIPE_V, PIPE_S, 3);
-        wait_flag(PIPE_V, PIPE_S, 3);
-        for (int i = 0; i < 16; i++)
-        {
-            _memcpy(dst + a * n_real_pad * 16 + a * 256 + i * 16 + i + 1, ub_temp.get_ptr(i) + i + 1, 15 - i);
-        }
+        vec_mul(ub_temp.get_ptr(0), dst + a * n_real_pad * 16 + a * 256, mask, 256);
+        vec_mul(ub_tran.get_ptr(0), ub_temp.get_ptr(0), mask_dia, 256);
+        pipe_barrier(PIPE_V);
+        vec_trans(ub_tran.get_ptr(0), ub_tran.get_ptr(0), 1, 1, 1);
+        vec_add(dst + a * n_real_pad * 16 + a * 256, ub_temp.get_ptr(0), ub_tran.get_ptr(0), 256);
     }
 }
 
+
 HACL_INLINE __aicore__ void hablas_load_Matrix_dig_lower(__ub__ half *dst,
+                                                         __ub__ half *mask,
+                                                         __ub__ half *mask_dia,
                                                          int n_real_pad)
 {
     Vector<half_16, 16, HACL_UB> ub_temp;
+    Vector<half_16, 16, HACL_UB> ub_tran;
 
-    int n_loop = n_real_pad / 16;
-
-    for (int a = 0; a < n_loop; a++)
+    int n_loop = n_real_pad / 16 ;
+    
+    for(int i = 0; i < n_loop; i++){
+    	for(int j = i + 1; j < n_loop; j++){
+    		vec_trans(dst + i * n_real_pad * 16 + j * 256, dst + j * n_real_pad * 16 + i * 256, 1, 1, 1);
+    	}
+    }
+    for(int a = 0; a < n_loop; a++)
     {
-        vec_trans(ub_temp.get_ptr(0), dst + a * n_real_pad * 16 + a * 256, 1, 1, 1);
-        set_flag(PIPE_V, PIPE_S, 3);
-        wait_flag(PIPE_V, PIPE_S, 3);
-        for (int i = 0; i < 16; i++)
-        {
-            _memcpy(dst + a * n_real_pad * 16 + a * 256 + i * 16, ub_temp.get_ptr(i), i);
-        }
+        vec_mul(ub_temp.get_ptr(0), dst + a * n_real_pad * 16 + a * 256, mask, 256);
+        vec_mul(ub_tran.get_ptr(0), ub_temp.get_ptr(0), mask_dia, 256);
+        pipe_barrier(PIPE_V);
+        vec_trans(ub_tran.get_ptr(0), ub_tran.get_ptr(0), 1, 1, 1);
+        vec_add(dst + a * n_real_pad * 16 + a * 256, ub_temp.get_ptr(0), ub_tran.get_ptr(0), 256);
     }
 }
 
