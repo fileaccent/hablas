@@ -111,12 +111,12 @@ rtError_t hablasSgemv(
 rtError_t hablasHsymv(hablasHandle_t handle,
                       hablasFillMode_t uplo, 
                       int64_t N,
-                      __fp16 alpha,
+                      __fp16 *alpha,
                       __fp16 *A,
                       int64_t lda,
                       __fp16 *x,
                       int64_t incx,
-                      __fp16 beta,
+                      __fp16 *beta,
                       __fp16 *y,
                       int64_t incy);
 
