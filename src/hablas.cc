@@ -289,7 +289,7 @@ rtError_t hablasHsyrk(hablasHandle_t handle,
     rtStream_t stream;
     hablasGetStream(handle, &stream);
     const char *func_name = "hablas_hsyrk_kernel";
-    uint64_t blockDim = M < 16 ? 1 : CORENUM;
+    uint64_t blockDim = N < 16 ? 1 : CORENUM;
     error = registerKernel(hablas_hsyrk_kernel, func_name);
     struct KernelArgs
     {
@@ -347,7 +347,7 @@ rtError_t hablasHsyr2k(hablasHandle_t handle,
     rtStream_t stream;
     hablasGetStream(handle, &stream);
     const char *func_name = "hablas_hsyr2k_kernel";
-    uint64_t blockDim = M < 16 ? 1 : CORENUM;
+    uint64_t blockDim = N < 16 ? 1 : CORENUM;
     error = registerKernel(hablas_hsyr2k_kernel, func_name);
 
     struct KernelArgs
