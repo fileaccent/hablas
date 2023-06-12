@@ -453,12 +453,12 @@ rtError_t hablasSgemv(hablasHandle_t handle,
                       hablasOperation_t trans,
                       int64_t M,
                       int64_t N,
-                      float alpha,
+                      float *alpha,
                       void *input1_hbm,
                       int64_t lda,
                       void *input2_hbm,
                       int64_t incx,
-                      float beta,
+                      float *beta,
                       void *input3_hbm,
                       int64_t incy)
 {
@@ -491,12 +491,12 @@ rtError_t hablasSgemv(hablasHandle_t handle,
     args.trans = trans;
     args.M = M;
     args.N = N;
-    args.alpha = alpha;
+    args.alpha = *alpha;
     args.input1_hbm = input1_hbm;
     args.lda = lda;
     args.incx = incx;
     args.input2_hbm = input2_hbm;
-    args.beta = beta;
+    args.beta = *beta;
     args.input3_hbm = input3_hbm;
     args.incy = incy;
     error = rtKernelLaunch(func_name, blockDim, (void *)&args,
@@ -507,12 +507,12 @@ rtError_t hablasSgemv(hablasHandle_t handle,
 rtError_t hablasHsymv(hablasHandle_t handle,
                       hablasFillMode_t uplo,
                       int64_t N,
-                      __fp16 alpha,
+                      __fp16 *alpha,
                       __fp16 *A,
                       int64_t lda,
                       __fp16 *x,
                       int64_t incx,
-                      __fp16 beta,
+                      __fp16 *beta,
                       __fp16 *y,
                       int64_t incy)
 {
@@ -540,12 +540,12 @@ rtError_t hablasHsymv(hablasHandle_t handle,
 
     args.uplo = uplo;
     args.n = N;
-    args.alpha = alpha;
+    args.alpha = *alpha;
     args.matrixA = A;
     args.lda = lda;
     args.x = x;
     args.incx = incx;
-    args.beta = beta;
+    args.beta = *beta;
     args.y = y;
     args.incy = incy;
 
@@ -565,12 +565,12 @@ rtError_t hablasHsymv(hablasHandle_t handle,
 rtError_t hablasSsymv(hablasHandle_t handle,
                       hablasFillMode_t uplo,
                       int64_t N,
-                      float alpha,
+                      float *alpha,
                       void *A,
                       int64_t lda,
                       void *X,
                       int64_t incx,
-                      float beta,
+                      float *beta,
                       void *Y,
                       int64_t incy)
 {
@@ -597,12 +597,12 @@ rtError_t hablasSsymv(hablasHandle_t handle,
     KernelArgs args;
     args.uplo = uplo;
     args.N = N;
-    args.alpha = alpha;
+    args.alpha = *alpha;
     args.A = A;
     args.lda = lda;
     args.incx = incx;
     args.X = X;
-    args.beta = beta;
+    args.beta = *beta;
     args.Y = Y;
     args.incy = incy;
     args.Kernel_N = 128;
@@ -658,12 +658,12 @@ rtError_t hablasCsymv(hablasHandle_t handle,
         args.uplo = 1;
     }
     args.N = N;
-    args.alpha = alpha;
+    args.alpha = *alpha;
     args.A = A;
     args.lda = lda;
     args.incx = incx;
     args.X = X;
-    args.beta = beta;
+    args.beta = *beta;
     args.Y = Y;
     args.incy = incy;
     args.workspace = workspace;
