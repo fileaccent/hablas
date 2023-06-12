@@ -658,12 +658,12 @@ rtError_t hablasCsymv(hablasHandle_t handle,
         args.uplo = 1;
     }
     args.N = N;
-    args.alpha = *alpha;
+    args.alpha = alpha;
     args.A = A;
     args.lda = lda;
     args.incx = incx;
     args.X = X;
-    args.beta = *beta;
+    args.beta = beta;
     args.Y = Y;
     args.incy = incy;
     args.workspace = workspace;
