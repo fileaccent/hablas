@@ -518,7 +518,8 @@ HACL_INLINE __aicore__ void hablas_load_matrix_diag_gm2ub(__ub__ half *ub_buffer
     {
         _memcpy(ub_buffer0, gm, n_real, m_real / 16, 0, (stride - m_real) / 16);
     }
-    pipe_barrier(PIPE_ALL);
+    set_flag(PIPE_MTE2, PIPE_S, 2);
+    wait_flag(PIPE_MTE2, PIPE_S, 2);
     if (uplo == HABLAS_FILL_MODE_LOWER)
     {
         for (int col = 0; col < n_real; col++)
