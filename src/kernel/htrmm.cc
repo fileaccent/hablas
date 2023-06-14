@@ -95,7 +95,7 @@ extern "C" __global__ __aicore__ void hablas_htrmm_kernel(__gm__ half *matrixA,
                 n_real_pad = n_real % 16 ? (n_real & 0xFFFFFFF0) + 16 : n_real;
             }
             
-            __gm__ half *C_ptr = matrixC + col * M * n +  row * m;
+            __gm__ half *C_ptr = matrixC + col * ldc * n +  row * m;
             wait_flag(PIPE_MTE3, PIPE_MTE2, 1);
 
             set_flag(PIPE_M, PIPE_MTE1, 0);
