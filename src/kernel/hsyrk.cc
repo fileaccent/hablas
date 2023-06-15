@@ -39,9 +39,6 @@ extern "C" __global__ __aicore__ void hablas_hsyrk_kernel(__gm__ half *matrixA,
     int64_t n = 256;
     int64_t k = 128;
 
-    int64_t n_tiles = (N + n - 1) / n;
-    int64_t k_loop = (K + k - 1) / k;
-
     int64_t n_remain = N % n;
     int64_t k_remain = K % k;
 
@@ -50,6 +47,9 @@ extern "C" __global__ __aicore__ void hablas_hsyrk_kernel(__gm__ half *matrixA,
         n -= 16;
         n_remain = N % n;
     }
+
+    int64_t n_tiles = (N + n - 1) / n;
+    int64_t k_loop = (K + k - 1) / k;
 
     Vector<half_16, 256 * 256 / 16, HACL_L1> L1C;
     Vector<half_16, 256 * 256 / 16, HACL_L1> L1_res;

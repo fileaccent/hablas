@@ -73,10 +73,6 @@ extern "C" __global__ __aicore__ void hablas_hgemm_batched_kernel(__gm__ int64_t
     int64_t n = 240;
     int64_t k = 128;
 
-    int64_t m_tiles = (M + m - 1) / m;
-    int64_t n_tiles = (N + n - 1) / n;
-    int64_t k_loop = (K + k - 1) / k;
-
     int64_t m_remain = M % m;
     int64_t n_remain = N % n;
     int64_t k_remain = K % k;
@@ -86,6 +82,11 @@ extern "C" __global__ __aicore__ void hablas_hgemm_batched_kernel(__gm__ int64_t
         m -= 16;
         m_remain = M % m;
     }
+
+    int64_t m_tiles = (M + m - 1) / m;
+    int64_t n_tiles = (N + n - 1) / n;
+    int64_t k_loop = (K + k - 1) / k;
+
     int64_t tiles_num = m_tiles * n_tiles * batch_count;
     int64_t tiles_per_core = tiles_num / block_num;
     if (block_idx < tiles_num % block_num)

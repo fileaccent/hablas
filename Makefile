@@ -1,4 +1,3 @@
-# export USE_LOW_LEVEL=1
 CC := /home/t_user/zsx-home/code/compiler/bin/haclc
 rt_path := /home/t_user/zsx-home/code/include
 
