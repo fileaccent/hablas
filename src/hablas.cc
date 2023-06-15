@@ -76,7 +76,6 @@ rtError_t hablasHgemm(hablasHandle_t handle,
     hablasGetStream(handle, &stream);
     const char *func_name = "hablas_hgemm_kernel";
     uint64_t blockDim = M < 16 ? 1 : ((M - 1) / 256 + 1) * ((N - 1) / 256 + 1);
-    std::cout << "blockDim: " << blockDim << std::endl;
     error = registerKernel(hablas_hgemm_kernel, func_name);
     struct KernelArgs
     {
@@ -144,7 +143,6 @@ rtError_t hablasHgemmBatched(hablasHandle_t handle,
     hablasGetStream(handle, &stream);
     const char *func_name = "hablas_hgemm_batched_kernel";
     uint64_t blockDim = M < 16 ? 1 : batch_count * ((M - 1) / 256 + 1) * ((N - 1) / 256 + 1);
-    std::cout << "blockDim: " << blockDim << std::endl;
     error = registerKernel(hablas_hgemm_batched_kernel, func_name);
 
     struct KernelArgs
@@ -222,8 +220,6 @@ rtError_t hablasHgemmStridedBatched(hablasHandle_t handle,
     const char *func_name = "hablas_hgemm_strided_batched_kernel";
     error = registerKernel(hablas_hgemm_strided_batched_kernel, func_name);
     uint64_t blockDim = M < 16 ? 1 : batch_count * ((M - 1) / 256 + 1) * ((N - 1) / 256 + 1);
-    std::cout << "blockDim: " << blockDim << std::endl;
-
     struct KernelArgs
     {
         hablasOperation_t transA;
