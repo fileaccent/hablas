@@ -252,14 +252,14 @@ hablas_store_vector_ub2gm(__gm__ float *dst,
             wait_flag(PIPE_MTE2, PIPE_S, 0);
 
             int iwhile = start_posi;
-            while (isrc_ele < valid_len * 2 && iwhile < UB_WORKSPACE_SIZE) {
+            while (isrc_ele < valid_len && iwhile < UB_WORKSPACE_SIZE) {
                 *(wksp + iwhile) = *(src + isrc_ele);
                 iwhile = iwhile + incy;
                 isrc_ele = isrc_ele + 1;
             }
             set_flag(PIPE_S, PIPE_MTE3, 0);
             wait_flag(PIPE_S, PIPE_MTE3, 0);
-            _memcpy(dst + loop * UB_WORKSPACE_SIZE, wksp, remain);
+            memcpy_ub2gm_anylen(dst + loop * UB_WORKSPACE_SIZE, wksp, remain);
             set_flag(PIPE_MTE3, PIPE_MTE2, 0);
 
         }
