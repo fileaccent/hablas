@@ -385,6 +385,8 @@ HACL_INLINE __aicore__ void hablas_load_Vector_gm2ub(__ub__ half *dst,
             }
         }
     }
+    set_flag(PIPE_MTE2, PIPE_S, 2);
+    wait_flag(PIPE_MTE2, PIPE_S, 2);
     if (len % 16)
     {
         int32_t r = len % 16;
