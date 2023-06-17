@@ -178,6 +178,7 @@ extern "C" __global__ __aicore__ void hablas_hsymv_kernel(hablasFillMode_t uplo,
                     set_flag(PIPE_MTE2, PIPE_V, 1);
                     wait_flag(PIPE_MTE2, PIPE_V, 1);
                     hablas_load_input_matrix_ND2zZ(ubA2, ubA1, k_real_pad, n_real_pad, alpha);
+                    pipe_barrier(PIPE_V);
                     hablas_load_Matrix_dig_lower(ubA2, mask.get_ptr(0), mask_dia.get_ptr(0), n_real_pad);
                     set_flag(PIPE_V, PIPE_MTE2, 1);
                     set_flag(PIPE_V, PIPE_MTE3, 1);
@@ -234,6 +235,7 @@ extern "C" __global__ __aicore__ void hablas_hsymv_kernel(hablasFillMode_t uplo,
                     set_flag(PIPE_MTE2, PIPE_V, 1);
                     wait_flag(PIPE_MTE2, PIPE_V, 1);
                     hablas_load_input_matrix_ND2zZ(ubA2, ubA1, k_real_pad, n_real_pad, alpha);
+                    pipe_barrier(PIPE_V);
                     hablas_load_Matrix_dig_upper(ubA2, mask.get_ptr(0), mask_dia.get_ptr(0), n_real_pad);
                     set_flag(PIPE_V, PIPE_MTE2, 1);
                     set_flag(PIPE_V, PIPE_MTE3, 1);
