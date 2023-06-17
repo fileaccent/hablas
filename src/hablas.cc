@@ -1042,18 +1042,6 @@ rtError_t hablasHtrmm(hablasHandle_t handle,
     std::cout << "blockDim: " << blockDim << std::endl;
     error = registerKernel(hablas_htrmm_kernel, func_name);
 
-    int64_t A_SIZE;
-    int64_t B_SIZE = ldb * N;
-    if (side == HABLAS_SIDE_LEFT)
-    {
-        A_SIZE = lda * M;
-    }
-    else
-    {
-        lda = N;
-        A_SIZE = lda * N;
-    }
-
     struct KernelArgs
     {
         hablasSideMode_t side;
