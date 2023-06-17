@@ -75,7 +75,7 @@ rtError_t hablasHgemm(hablasHandle_t handle,
     rtStream_t stream;
     hablasGetStream(handle, &stream);
     const char *func_name = "hablas_hgemm_kernel";
-    uint64_t blockDim = M < 16 ? 1 : ((M - 1) / 256 + 1) * ((N - 1) / 256 + 1);
+    uint64_t blockDim = ((M - 1) / 256 + 1) * ((N - 1) / 256 + 1);
     error = registerKernel(hablas_hgemm_kernel, func_name);
     struct KernelArgs
     {
@@ -142,7 +142,7 @@ rtError_t hablasHgemmBatched(hablasHandle_t handle,
     rtStream_t stream;
     hablasGetStream(handle, &stream);
     const char *func_name = "hablas_hgemm_batched_kernel";
-    uint64_t blockDim = M < 16 ? 1 : batch_count * ((M - 1) / 256 + 1) * ((N - 1) / 256 + 1);
+    uint64_t blockDim = batch_count * ((M - 1) / 256 + 1) * ((N - 1) / 256 + 1);
     error = registerKernel(hablas_hgemm_batched_kernel, func_name);
 
     struct KernelArgs
@@ -219,7 +219,7 @@ rtError_t hablasHgemmStridedBatched(hablasHandle_t handle,
     hablasGetStream(handle, &stream);
     const char *func_name = "hablas_hgemm_strided_batched_kernel";
     error = registerKernel(hablas_hgemm_strided_batched_kernel, func_name);
-    uint64_t blockDim = M < 16 ? 1 : batch_count * ((M - 1) / 256 + 1) * ((N - 1) / 256 + 1);
+    uint64_t blockDim = batch_count * ((M - 1) / 256 + 1) * ((N - 1) / 256 + 1);
     struct KernelArgs
     {
         hablasOperation_t transA;
@@ -288,7 +288,7 @@ rtError_t hablasHsyrk(hablasHandle_t handle,
     rtStream_t stream;
     hablasGetStream(handle, &stream);
     const char *func_name = "hablas_hsyrk_kernel";
-    uint64_t blockDim = N < 16 ? 1 : CORENUM;
+    uint64_t blockDim = CORENUM;
     error = registerKernel(hablas_hsyrk_kernel, func_name);
     struct KernelArgs
     {
@@ -346,7 +346,7 @@ rtError_t hablasHsyr2k(hablasHandle_t handle,
     rtStream_t stream;
     hablasGetStream(handle, &stream);
     const char *func_name = "hablas_hsyr2k_kernel";
-    uint64_t blockDim = N < 16 ? 1 : CORENUM;
+    uint64_t blockDim = CORENUM;
     error = registerKernel(hablas_hsyr2k_kernel, func_name);
 
     struct KernelArgs
@@ -1038,7 +1038,7 @@ rtError_t hablasHtrmm(hablasHandle_t handle,
     rtStream_t stream;
     hablasGetStream(handle, &stream);
     const char *func_name = "hablas_htrmm_kernel";
-    uint64_t blockDim = M < 16 ? 1 : ((M - 1) / 256 + 1) * ((N - 1) / 256 + 1);
+    uint64_t blockDim = ((M - 1) / 256 + 1) * ((N - 1) / 256 + 1);
     std::cout << "blockDim: " << blockDim << std::endl;
     error = registerKernel(hablas_htrmm_kernel, func_name);
 
