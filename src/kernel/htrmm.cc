@@ -42,8 +42,8 @@ extern "C" __global__ __aicore__ void hablas_htrmm_kernel(__gm__ half *matrixA,
     int64_t ldc = M;
 #endif
 
-    int64_t m = 144;
-    int64_t n = 128;
+    int64_t m = 128;
+    int64_t n = 256;
 
     while (M % m < 16 && M % m > 0 && m > 0 && M >= 16) {
         m -= 16;
