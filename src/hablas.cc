@@ -1160,6 +1160,5 @@ rtError_t hablasCgemv(hablasHandle_t handle,
     } else {
         printf("[FAILED]rtKernelLaunch failed!\n");
     }
-    error = rtStreamSynchronize(stream);
     return error;
 }
