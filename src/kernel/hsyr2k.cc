@@ -264,7 +264,7 @@ extern "C" __global__ __aicore__ void hablas_hsyr2k_kernel(__gm__ half *matrixA,
             }
             else
             {
-                mmad(result.get_ptr(0), inputA.get_ptr(0), inputB.get_ptr(0), m_real_pad, k_real, n_real_pad, 0);
+                mmad(result.get_ptr(0), inputA.get_ptr(0), inputB.get_ptr(0), m_real, k_real, n_real, 0);
             }
             set_flag(PIPE_M, PIPE_MTE1, 0);
         }
