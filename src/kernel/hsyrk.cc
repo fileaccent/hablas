@@ -240,11 +240,11 @@ extern "C" __global__ __aicore__ void hablas_hsyrk_kernel(__gm__ half *matrixA,
             wait_flag(PIPE_MTE1, PIPE_M, 0);
             if (j == 0)
             {
-                mmad(result.get_ptr(0), inputA.get_ptr(0), inputB.get_ptr(0), m_real_pad, k_real, n_real_pad, 1);
+                mmad(result.get_ptr(0), inputA.get_ptr(0), inputB.get_ptr(0), m_real_pad, k_real, n_real, 1);
             }
             else
             {
-                mmad(result.get_ptr(0), inputA.get_ptr(0), inputB.get_ptr(0), m_real, k_real, n_real, 0);
+                mmad(result.get_ptr(0), inputA.get_ptr(0), inputB.get_ptr(0), m_real_pad, k_real, n_real, 0);
             }
             set_flag(PIPE_M, PIPE_MTE1, 0);
         }
