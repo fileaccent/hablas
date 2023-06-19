@@ -122,7 +122,6 @@ HACL_INLINE __aicore__ void hablas_store_matrixC_nZ2ND(__ub__ half *ub_buffer1,
 
 HACL_INLINE __aicore__ void hablas_store_matrixC_ub2gm(__gm__ half *gm,
                                                        __ub__ half *ub_buffer1,
-                                                       __ub__ half *workspace,
                                                        int64_t m_real_pad,
                                                        int64_t n_real_pad,
                                                        int64_t m_real,
@@ -132,6 +131,7 @@ HACL_INLINE __aicore__ void hablas_store_matrixC_ub2gm(__gm__ half *gm,
     if (m_real < 16)
     {
         int offset = 16 - m_real;
+        __ub__ half *workspace = ub_buffer1 + 256 * 16;
         set_flag(PIPE_V, PIPE_MTE2, 0);
         wait_flag(PIPE_V, PIPE_MTE2, 0);
         _memcpy(workspace, gm, 1, 1, 0, 0);
@@ -466,16 +466,18 @@ HACL_INLINE __aicore__ void hablas_load_Matrix_dig_upper(__ub__ half *dst,
     Vector<half_16, 16, HACL_UB> ub_temp;
     Vector<half_16, 16, HACL_UB> ub_tran;
 
-    int n_loop = n_real_pad / 16 ;
-     
-    for(int i = 0; i < n_loop; i++){
-    	for(int j = 0; j < i; j++){
-    		vec_trans(dst + i * n_real_pad * 16 + j * 256, dst + j * n_real_pad * 16 + i * 256, 1, 1, 1);
-    	}
+    int n_loop = n_real_pad / 16;
+
+    for (int i = 0; i < n_loop; i++)
+    {
+        for (int j = 0; j < i; j++)
+        {
+            vec_trans(dst + i * n_real_pad * 16 + j * 256, dst + j * n_real_pad * 16 + i * 256, 1, 1, 1);
+        }
     }
-     
+
     // pipe_barrier(PIPE_V);
-    for(int a = 0; a < n_loop; a++)
+    for (int a = 0; a < n_loop; a++)
     {
         vec_mul(ub_temp.get_ptr(0), dst + a * n_real_pad * 16 + a * 256, mask, 256);
         vec_mul(ub_tran.get_ptr(0), ub_temp.get_ptr(0), mask_dia, 256);
@@ -485,7 +487,6 @@ HACL_INLINE __aicore__ void hablas_load_Matrix_dig_upper(__ub__ half *dst,
     }
 }
 
-
 HACL_INLINE __aicore__ void hablas_load_Matrix_dig_lower(__ub__ half *dst,
                                                          __ub__ half *mask,
                                                          __ub__ half *mask_dia,
@@ -494,14 +495,16 @@ HACL_INLINE __aicore__ void hablas_load_Matrix_dig_lower(__ub__ half *dst,
     Vector<half_16, 16, HACL_UB> ub_temp;
     Vector<half_16, 16, HACL_UB> ub_tran;
 
-    int n_loop = n_real_pad / 16 ;
-    
-    for(int i = 0; i < n_loop; i++){
-    	for(int j = i + 1; j < n_loop; j++){
-    		vec_trans(dst + i * n_real_pad * 16 + j * 256, dst + j * n_real_pad * 16 + i * 256, 1, 1, 1);
-    	}
+    int n_loop = n_real_pad / 16;
+
+    for (int i = 0; i < n_loop; i++)
+    {
+        for (int j = i + 1; j < n_loop; j++)
+        {
+            vec_trans(dst + i * n_real_pad * 16 + j * 256, dst + j * n_real_pad * 16 + i * 256, 1, 1, 1);
+        }
     }
-    for(int a = 0; a < n_loop; a++)
+    for (int a = 0; a < n_loop; a++)
     {
         vec_mul(ub_temp.get_ptr(0), dst + a * n_real_pad * 16 + a * 256, mask, 256);
         vec_mul(ub_tran.get_ptr(0), ub_temp.get_ptr(0), mask_dia, 256);
