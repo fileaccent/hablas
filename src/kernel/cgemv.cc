@@ -390,7 +390,8 @@ pipe_barrier(PIPE_ALL);
 
         __gm__ float *Y_ptr = Y + row * m * incy * 2;
         __gm__ float *tmp_gm_ptr = tmp_gm + row * m * 2+1;
-
+        set_flag(PIPE_MTE3, PIPE_S, 0);
+        wait_flag(PIPE_MTE3, PIPE_S, 0);
         wait_flag(PIPE_MTE3, PIPE_V, 0); 
         // vec_dup(ub_y_block_real_ptr, (float)0, m * 2);
         // vec_dup(ub_y_block_imag_ptr, (float)0, m * 2);
@@ -539,6 +540,8 @@ pipe_barrier(PIPE_ALL);
 
 
         wait_flag(PIPE_MTE2, PIPE_MTE3, 0);// waiting for tmp_gm_ptr
+        set_flag(PIPE_V, PIPE_S, 0);
+        wait_flag(PIPE_V, PIPE_S, 0);
         _memcpy(tmp_gm_ptr, ub_y_block_imag_ptr, m_real_pad * 2);
         set_flag(PIPE_MTE3, PIPE_MTE2, 0);
         wait_flag(PIPE_MTE3, PIPE_MTE2, 0);
@@ -557,7 +560,8 @@ pipe_barrier(PIPE_ALL);
         set_flag(PIPE_V, PIPE_MTE3, 0);
         wait_flag(PIPE_V, PIPE_MTE3, 0);
 
-        // _memcpy(Y_ptr, ub_y_block_real_ptr, m_real * 2);
+        set_flag(PIPE_V, PIPE_S, 0);
+        wait_flag(PIPE_V, PIPE_S, 0);
         hablas_store_cvector_ub2gm(Y_ptr, ub_y_block_real_ptr, ub_wksp_block_ptr, m_real_pad, incy);
         set_flag(PIPE_MTE3, PIPE_V, 0); // waiting for ub_res_block_real_ptr
     }
