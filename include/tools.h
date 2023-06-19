@@ -133,8 +133,7 @@ HACL_INLINE __aicore__ void hablas_store_matrixC_ub2gm(__gm__ half *gm,
     {
         int offset = 16 - m_real;
         _memcpy(workspace, gm, 1, 1, 0, 0);
-        set_flag(PIPE_MTE2, PIPE_S, 0);
-        wait_flag(PIPE_MTE2, PIPE_S, 0);
+        pipe_barrier(PIPE_ALL);
         for (int j = 0; j < m_real; ++j)
         {
             *(workspace + j) = *(ub_buffer1 + j);
