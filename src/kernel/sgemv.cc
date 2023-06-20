@@ -59,6 +59,7 @@ HACL_INLINE __aicore__ void mmad_sgemv(__ub__ float *ub_A, __ub__ float *ub_X, _
         if (m_loop != 1) {
             __hacl_details__::__hacl_intrinsic_move_mask(64);
         }
+        pipe_barrier(PIPE_V);
         __hacl_details__::__hacl_intrinsic_vec_reduce_add(ub_buffer0, ub_A, n, m_pad / 8, 1);
         vec_add(ub_Y, ub_Y, ub_buffer0, n);
     }
