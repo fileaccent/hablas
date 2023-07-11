@@ -337,15 +337,26 @@ extern "C" __global__ __aicore__ void hablas_ssymv_kernel(
         }
         else
         {
-             set_flag(PIPE_S, PIPE_MTE2, 1);
+            set_flag(PIPE_S, PIPE_MTE2, 1);
             for (int64_t i = 0; i < m; ++i)
             {
-                wait_flag(PIPE_S, PIPE_MTE2, 1);
-                _memcpy(buffer.get_ptr(0), Y + row_id * kernel_N * incy + (i * incy), 1);
-                set_flag(PIPE_MTE2, PIPE_S, 0);
-                wait_flag(PIPE_MTE2, PIPE_S, 0);
-                *(y.get_ptr(0) + i) = *(buffer.get_ptr(0)) * beta;
-                set_flag(PIPE_S, PIPE_MTE2, 1);
+                if (row_id * kernel_N * incy + (i * incy) + 8 <= N * incy)
+                {    
+                    wait_flag(PIPE_S, PIPE_MTE2, 1);
+                    _memcpy(buffer.get_ptr(0), Y + row_id * kernel_N * incy + (i * incy), 1);
+                    set_flag(PIPE_MTE2, PIPE_S, 0);
+                    wait_flag(PIPE_MTE2, PIPE_S, 0);
+                    *(y.get_ptr(0) + i) = *(buffer.get_ptr(0)) * beta;
+                    set_flag(PIPE_S, PIPE_MTE2, 1);
+                }
+                else{
+                    wait_flag(PIPE_S, PIPE_MTE2, 1);
+                    _memcpy(buffer.get_ptr(0), Y + row_id * kernel_N * incy + (i * incy) - 7, 1);
+                    set_flag(PIPE_MTE2, PIPE_S, 0);
+                    wait_flag(PIPE_MTE2, PIPE_S, 0);
+                    *(y.get_ptr(0) + i) = *(buffer.get_ptr(0) + 7) * beta;
+                    set_flag(PIPE_S, PIPE_MTE2, 1);
+                }
             }
             wait_flag(PIPE_S, PIPE_MTE2, 1);
         }
